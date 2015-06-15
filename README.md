@@ -1,14 +1,14 @@
 # Phot
 
-**Phot** is a **pipeline** aimed to reduce and analyze optical images through **differential photometry**. The *input* files are the calibration images and the multi-night science images. The *output* files are the corrected light curves. The code is aimed for multi-night data and it averages the nightly data in one single point. If you have one single shot per night you should modify the offset.py file (it's straightforward).
+**Phot** is a **pipeline** aimed to reduce and analyze optical images through **differential photometry**. The *input* files are the calibration images and the multi-night science images. The *output* files are the corrected light curves. The code is aimed for multi-night data and it averages the nightly data in one single point. If you only have one single shot per night you should modify the offset.py file (it's straightforward).
 
-**WARNING**: the pipeline creates and delete temporary folders and this might be dangerous if you make any mistake setting up the file and directory tree (see Requirements). Make sure that you have a backup of your data images before running the pipeline for the first time.
+**WARNING**: the pipeline creates and deletes temporary folders and this might be dangerous if you make any mistake setting up the file and directory tree (see Requirements). Make sure that you have a backup of your data images before running the pipeline for the first time.
 
 The *main steps* of the pipeline are:
 
 1. Calibration
   1. Cropping of the images (Astropy)
-  2. Astrometric reduction (tan-sip fit; valid for large field of views)
+  2. Astrometric reduction (Astrometry.net: tan-sip fit; valid for large field of views)
   3. Saturation and centering control
   4. Non-linearity correction (optional; disable at param.py)
   5. Shutter map correction (optional; disable at param.py)
@@ -26,7 +26,7 @@ The *main steps* of the pipeline are:
   9. Artificial offset to the mean magnitude and error estimation
 3. Plotting
 
-This software has been developed during my **PhD thesis** (University of Barcelona) to reduce and analyze the optical images of some amazing galactic objects called gamma-ray binaries. I would like to thank and give the appropriate credit to my thesis supervisors Marc Ribó and Valentí Bosch-Ramon, without their guide and discussions none of this would have been possible. I also want to thank to Octavi Fors and Daniel del Ser for the very valuable discussions on the technical implementation, and to Benito Marcote and Javier Moldón for their useful Python tips. The pipeline involves several steps and uses external tools and Python packages such as Astropy, PyIRAF, Astrometry.net and SExtractor, finally I want to give credit to the authors and people who contributed to those tools.
+This software has been developed during my **PhD thesis** (University of Barcelona) to reduce and analyze the optical images of some amazing galactic objects called gamma-ray binaries. I would like to thank and give the appropriate credit to my thesis supervisors Marc Ribó and Valentí Bosch-Ramon, without their guide and discussions none of this would have been possible. I also want to thank to Octavi Fors and Daniel del Ser for the very valuable discussions on the technical implementation, and to Benito Marcote and Javier Moldón for their useful Python tips. The pipeline involves several steps and uses external tools and Python packages such as Astropy, PyIRAF, Astrometry.net and SExtractor, finally I want to give credit to the authors and people who contributed to these tools.
 
 The following **papers** have been published in refereed journals using a **previous** version of this software:
 
@@ -59,7 +59,7 @@ See the [LICENSE](LICENSE.md) file for license rights and limitations (MIT).
 * SExtractor
 * Some Python packages including PyIRAF (the easiest way to install PyIRAF is installing the Ureka distribution; see the [requirements.txt](requirements.txt) file)
 * LaTeX (optional: for nice plots)
-* epstool (optional: to perform a tight crop when using LaTex, it can be disabled at plots.py)
+* epstool (optional: to perform a tight crop when using LaTeX, it can be disabled at plots.py)
 
 
 ### Input

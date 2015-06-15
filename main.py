@@ -11,8 +11,6 @@ execfile(sys.argv[1])
 
 
 def main():
-    # print_info() # set up file etc.
-
     if param['disable_calibration'] == 0:
         print('\nCCD CALIBRATION:\n')
         calibration.calibrate_data()
@@ -32,9 +30,6 @@ def main():
         else:
             plots.make_plots()
         print('Plotting successfully completed.')
-
-    # print('\n----------------------------------------')
-    # report_computation_time() # for each part
 
 
 if __name__ == '__main__':
