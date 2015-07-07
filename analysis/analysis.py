@@ -19,7 +19,6 @@ execfile(sys.argv[1])
 
 
 def make_output_folder(o):
-
     def check_and_make(folder_name):
         if os.path.exists(o+folder_name):
             shutil.rmtree(o+folder_name)

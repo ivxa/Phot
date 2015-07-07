@@ -64,6 +64,14 @@ def compute_orbital_phase(mjd, mag, merr):
     return np.append(phase, phase+1), np.append(mag, mag), np.append(merr, merr)
 
 
+def compute_orbital_phase_mid(mjd, mag, merr):
+    jd = mjd+2400000.5
+    jd0 = param['JD0']
+    p = param['period']
+    phase = np.asarray([(j-jd0)/p-np.int((j-jd0)/p) for j in jd])
+    return phase, mag, merr
+
+
 def plot_phase(i, o):
     x, y, yerr = i
     ymin = min(np.asarray(y)-np.asarray(yerr))
@@ -177,6 +185,9 @@ def make_plots():
                + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']))
     plot_phase(compute_orbital_phase(mjd, nightly_avg_mag, nightly_std_mag), param['output_path']
                + 'multi_night_LC/PHA-{}-target-nightly_average.eps'.format(param['field_name']))
+    np.savetxt(param['output_path']+'data/'+'PHA_MAG_ERR-{}-nightly_average.dat'.format(param['field_name']),
+               np.transpose(compute_orbital_phase_mid(mjd, nightly_avg_mag, nightly_std_mag)), delimiter=' ')
+
 
     # Multi night cycle coloured light curve
     if param['disable_plots_cycles'] == 0:

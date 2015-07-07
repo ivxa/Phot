@@ -88,6 +88,10 @@ def compute_std(cat_mag_corrected, it, ind, ns, ind_ref):
     nstars = len(cat_mag_corrected[0][0, :])
     avg_nightly_m = np.asarray([[np.average(mag[:, i]) for i in xrange(nstars)] for mag in cat_mag_corrected])
     std_m = np.asarray([np.std(avg_nightly_m[:, i]) for i in xrange(nstars)])
+
+    # WRONG, std_m2 does not account for night to night variations
+    # std_m2 = np.average([np.std(mag[:, :], axis=0) for mag in cat_mag_corrected], axis=0)
+
     print '\n  After correcting loop {}:'.format(it)
     print '  - Number of stars used for correction {} of {} stars'.format(ns, nstars)
     print '  - Labeled with (the first 10 of them): {}'.format(ind_ref[0:10])
@@ -109,7 +113,7 @@ def extinction_correction(cat_mag, ind, bool_sel, nsel):
         ind_ref_aux = np.copy(ind_ref)
 
         # Compute the standard deviation of the nightly averages
-        avg_m, std_m = compute_std(cat_mag_corrected, it, ind, len(mag0), ind_ref)
+        avg_m, std_m = compute_std(cat_mag_corrected, it, ind, len(ind_ref), ind_ref)
 
         # Remove the target from the comparison star candidates
         std_m[ind] = 9999999
@@ -119,6 +123,12 @@ def extinction_correction(cat_mag, ind, bool_sel, nsel):
 
         # Apply correction only using the selected stars
         ind_ref = std_m.argsort()[0:nsel]
+
+        print '\nStar label {}, std: {}'.format(ind_ref[0], std_m[ind_ref[0]])
+        print 'Star label {}, std: {}'.format(ind_ref[1], std_m[ind_ref[1]])
+        print 'Star label {}, std: {}'.format(ind_ref[2], std_m[ind_ref[2]])
+        print 'Star label {}, std: {}'.format(ind_ref[3], std_m[ind_ref[3]])
+
         if np.array_equal(np.sort(ind_ref), np.sort(ind_ref_aux)):
             break
         mag0 = cat_mag[0][0, :]
@@ -238,12 +248,6 @@ def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
     ref_stars_info(ind_ref, cat_mag_corrected[0][:, :], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
     plot_self_corrected(cat_mag_corrected, cat_mjd, ind, ind_ref, o+'/MJD-'+param['field_name']+'-ref_stars_self_corrected.eps')
     plot_not_self_corrected(cat_mag[:], cat_mag_corrected[:], cat_mjd, ind, ind_ref, o)
-    print np.median([np.std(mag[:, ind]) for mag in cat_mag_corrected])
-    print np.median([np.std(mag[:, ind_ref[0]]) for mag in cat_mag_corrected])
-    print np.median([np.std(mag[:, ind_ref[1]]) for mag in cat_mag_corrected])
-    print np.median([np.std(mag[:, ind_ref[2]]) for mag in cat_mag_corrected])
-    print np.median([np.std(mag[:, ind_ref[3]]) for mag in cat_mag_corrected])
-    print np.median([np.std(mag[:, ind_ref[4]]) for mag in cat_mag_corrected])
     return cat_mag_corrected, ind, ind_ref
 
 
