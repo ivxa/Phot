@@ -65,20 +65,23 @@ def create_mjd_catalog(i, il):
 
 
 def perform_extraction(i, frame_list, testing=1):
-    folder_list = make_folder_list(i)
+    folder_list_aux = make_folder_list(i)
     field_name = param['field_name']
     sl = param['saturation_level_post_calibration']
     cat_mjd = []
     cat_ra = []
     cat_dec = []
     cat_mag = []
+    folder_list = []
+    frame_list_flat = [item for sublist in frame_list for item in sublist]
+    [folder_list.extend([f]) for f in folder_list_aux if f in [frame[:len(f)] for frame in frame_list_flat]]
     nnights = len(folder_list)
     for (n, f) in enumerate(folder_list):
         sys.stdout.write('\r  Computing night {} of {}'.format(n+1, nnights))
         sys.stdout.flush()
         if param['disable_analysis_extraction'] == 0:
             make_cat_folder(f+'phot/'+field_name+'/cat')
-        il = make_image_list(f+'phot/'+field_name+'/cal/', frame_list[n])
+        il = make_image_list(f+'phot/'+field_name+'/cal/', frame_list_flat)
         cat_list_mjd = create_mjd_catalog(f+'phot/'+field_name+'/cal/', il)
         cat_mjd.append(cat_list_mjd)
         cat_list_ra, cat_list_dec, cat_list_mag = create_catalog_arrays(f+'phot/'+field_name, il, sl)
