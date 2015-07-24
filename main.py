@@ -14,7 +14,7 @@ def main():
     if param['disable_calibration'] == 0:
         print('\nCCD CALIBRATION:\n')
         calibration.calibrate_data()
-        print('Calibration successfully completed.')
+        print('\nCalibration successfully completed.')
 
     if param['disable_analysis'] == 0:
         print('\n----------------------------------------')

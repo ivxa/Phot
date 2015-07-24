@@ -50,7 +50,8 @@ def apply_correction(fi):
         for f in file_list:
             shutter_correction(i, i+'shu/', f, s)
         move_files(i, i+'shu/')
-    correct_set(fi+'flats/', fi+'shutter/')
+    if param['disable_screen_flat'] == 1:       
+        correct_set(fi+'flats/', fi+'shutter/')
     correct_set(fi+'science/', fi+'shutter/')
 
 

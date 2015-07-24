@@ -25,8 +25,9 @@ def check_saturation(img, x, y, sl, tol=10):
         raise RuntimeError("Source saturated at {}".format(img))
 
 
-def check_center(img, x, y, tol=500):
+def check_center(img, x, y):
     crop_region = param['crop_region']
+    tol = param['tol_center']
     source_xy_shift = param['source_xy_shift']
     x_expected = (crop_region[1]-crop_region[0])/2.+source_xy_shift[0]
     y_expected = (crop_region[3]-crop_region[2])/2.+source_xy_shift[1]

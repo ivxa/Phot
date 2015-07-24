@@ -36,14 +36,19 @@ def crop_data(fi, fo):
         for n in file_list:
             crop(i, o, n, x0, x1, y0, y1)
 
-    crop_set(fi+'supermasterflat_link/', fo+'/tmp/flats/')
-    crop_set(fi+'bias_no_cal/', fo+'/tmp/bias/')
+    if param['disable_standard_cal'] == 0:
+        if param['disable_screen_flat'] == 1:
+            crop_set(fi+'supermasterflat_link/', fo+'/tmp/flats/')
+        else:
+            crop_set(param['data_path']+'flat_pantalla/', fo+'/tmp/flats/')
+        crop_set(fi+'bias_no_cal/', fo+'/tmp/bias/')
+        crop_set(fi+fn+'/raw_no_cal/darks_no_cal/', fo+'/tmp/darks/')
     if param['disable_calibration_lin'] == 0:
         crop_set(fi+'linearity_map_link/', fo+'/tmp/linear/')
     if param['disable_calibration_shutter'] == 0:
         crop_set(fi+'shutter_map_link/', fo+'/tmp/shutter/')
     crop_set(fi+fn+'/raw_no_cal/', fo+'/tmp/science/')
-    crop_set(fi+fn+'/raw_no_cal/darks_no_cal/', fo+'/tmp/darks/')
+
 
 
 if __name__ == '__main__':

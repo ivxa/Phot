@@ -52,6 +52,7 @@ def plot_mjd(x, y, yerr, o):
     # from matplotlib.ticker import MultipleLocator
     # ax[0].xaxis.set_minor_locator(MultipleLocator(0.5))
     f.savefig(o, bbox_inches='tight', pad_inches=0.05)
+    #f.show()
     plt.close(f)
     # auto_crop_img(o)
 

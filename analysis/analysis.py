@@ -29,10 +29,12 @@ def make_output_folder(o):
         os.makedirs(o+'nightly_LC')
         os.makedirs(o+'multi_night_LC')
         os.makedirs(o+'std_multi_night_plots')
+        os.makedirs(o+'RMSvsMAG')        
     else:
         check_and_make('nightly_LC')
         check_and_make('multi_night_LC')
         check_and_make('std_multi_night_plots')
+        check_and_make('RMSvsMAG')        
         check_and_make('data')
 
 
