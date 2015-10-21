@@ -12,7 +12,7 @@ param = {
     'disable_calibration_lin': 1,           # 1 to disable non-linearity correction
     'disable_analysis': 0,                  # 1 to disable the analysis
     'disable_analysis_extraction': 0,       # 1 to disable the source extraction
-    'disable_parab_fit': 1,                 # 1 to disable parabola fitting for comparison star selection process    
+    'disable_parab_fit': 1,                 # 1 to disable parabola fitting for comparison star selection process
     'disable_plots': 0,                     # 1 to disable the plotting
     'disable_plots_cycles': 0,              # 1 to disable the orbital cycle plots (useful only for binary systems)
     'disable_plots_error_bars': 0,          # 1 to hide de error bars
@@ -28,8 +28,9 @@ param = {
     'colormap_cycles_range': (0, 1),        # To cut the colour scale
     'ra': '22:42:57',                       # RA coordinate of the target
     'dec': '+44:43:18',                     # DEC coordinate of the target
+    'reference_stars': "[('22:43:07', '+44:42:44'), ('22:43:12', '+44:45:41'), ('22:42:42', '+44:44:52'), ('22:42:50', '+44:40:20')]",
     'dmax': 1.0,                            # Maximum distance with respect any star in the FOV
-    'dmax_final': 0.3,                      # Maximum distance of the comparison stars 
+    'dmax_final': 0.3,                      # Maximum distance of the comparison stars
     'mmin0': 2,                             # Minimum magnitude difference of the comparison stars at first iteration
     'mmax0': 3,                             # Maximum magnitude difference of the comparison stars at first iteration
     'mmin': 2.0,                            # Minimum magnitude difference of the comparison stars

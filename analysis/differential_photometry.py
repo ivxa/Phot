@@ -23,6 +23,26 @@ def find_target(ra, dec, ra0, dec0, testing=0):
         ind = find_target(ra, dec, ra0, dec0, testing=0)
     return ind
 
+def find_stars(ra, dec, stars, testing=0):
+    ind_list = []
+    for star in stars:
+        ra0 = star[0]
+        dec0 = star[1]
+        tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
+        cat = SkyCoord(ra*u.degree, dec*u.degree)
+        ind, sep2d, dist3d = tar.match_to_catalog_sky(cat)
+        ind_list.append(int(ind))
+        if sep2d.arcsec > param['astrometric_tolerance']:
+            raise RuntimeError("Reference star not found")
+        if testing == 1:
+            ra = np.delete(ra, ind)
+            dec = np.delete(dec, ind)
+            ind = find_target(ra, dec, ra0, dec0, testing=0)
+        # print 'Index value: {}'.format(ind)
+    # print ind_list
+    assert len(stars) == len(ind_list), 'Could not find reference stars'
+    return ind_list
+
 
 def distance_selection(ra, dec, ra0, dec0, dmax, bool_sel, testing=1):
 
@@ -66,7 +86,7 @@ def magnitude_selection(mag, mag_target, sel, mmin, mmax, testing =1):
     return sel
 
 
-def correct_magnitudes(cm, m0, ind_ref, w, testing=1):
+def correct_magnitudes(cm, m0, ind_ref, w, testing=0):
     ns = len(ind_ref)
     for (i, m) in enumerate(cm):
         # Number of frames
@@ -83,7 +103,7 @@ def correct_magnitudes(cm, m0, ind_ref, w, testing=1):
         cm[i] = np.array([m[j, :]-dm[j] for j in xrange(nf)])
 
     if testing == 1:
-        ii = w.argsort()[::-1]  
+        ii = w.argsort()[::-1]
         ind_ref = ind_ref[ii]
         avg_nightly_m = np.asarray([[np.average(mag[:, i]) for i in ind_ref] for mag in cm])
         AVG_m = np.asarray([np.average(avg_nightly_m[:, i]) for i in xrange(len(ind_ref))])
@@ -106,7 +126,8 @@ def compute_std(cat_mag_corrected, it, ind, ns, ind_ref):
 
     print '\n  After correcting loop {}:'.format(it)
     print '  - Number of stars used for correction {} of {} stars'.format(ns, nstars)
-    print '  - Labeled with (the first 10 of them): {}'.format(ind_ref[0:10])
+    print '  - Labeled with: {}'.format(ind_ref)
+    print '  - And std of {}'.format(std_m[ind_ref])
     print '  - Multi night target STD of the averaged mag is of {:.4f}'.format(std_m[ind])
     print '  - Target MEAN magnitude is of {:.3f}\n'.format(np.average(avg_nightly_m[:, ind]))
     return avg_nightly_m, AVG_m, std_m
@@ -152,86 +173,41 @@ def parab_select(mag, std, sel, it):
     return sel
 
 
-def extinction_correction(cat_mag, ind, bool_sel, nsel, ra, dec, ra0, dec0,):
-    # First correction limiting by magnitude (mmin0 and mmax0)
+def extinction_correction(cat_mag, ind, ind_ref, ra, dec, ra0, dec0,):
+
+    # Boolean array for labeling the preselected reference stars
+    sel = np.zeros_like(ra, dtype=bool)
+    sel[ind_ref] = True
+
+    # First correction equal weights
     mag0 = cat_mag[0][0, :]
+    w = np.ones_like(ind_ref)
+    cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref, w)
+    avg_m, AVG_m, std_m = compute_std(cat_mag_corrected, 1, ind, len(ind_ref), ind_ref)
 
-    # First magnitude selection
-    print '\nITERATION 0:'
-    sel0 = np.ones_like(mag0, dtype=bool)
-    sel0[mag0 > mag0[ind]+param['mmax']] = False
-    sel0[mag0 < mag0[ind]-param['mmin']] = False
-    sel0[ind] = False
-    ind_ref = np.where(sel0 == True)[0]
-    cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref, np.ones_like(ind_ref))
+    # Second correction weighted with the std
+    mag0 = cat_mag[0][0, :]
+    w = 1./std_m[ind_ref]**2.
+    cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref, w)
+    avg_m, AVG_m, std_m = compute_std(cat_mag_corrected, 2, ind, len(ind_ref), ind_ref)
+
     print '------'
-
-    # Many corrections
-    it = 0
-    while True:
-        it += 1
-        print '\nITERATION {}:'.format(it)        
-        ind_ref_aux = np.copy(ind_ref)
-
-        # Compute the standard deviation of the nightly averages
-        avg_m, AVG_m, std_m = compute_std(cat_mag_corrected, it, ind, len(ind_ref), ind_ref)
-        std_m_aux = np.copy(std_m)
-        sel = np.ones_like(AVG_m, dtype=bool)     
-
-        # Remove the target from the comparison star candidates
-        std_target = std_m[ind]
-        std_m[ind] = 9999999
-
-        # Remove less suitable comparison stars based on distance criteria
-        std_m[np.where(bool_sel == False)] = 9999999
-
-        # Select the comparison stars based on parabola fitting
-        if param['disable_parab_fit'] == 0:
-            sel = parab_select(AVG_m, std_m, sel, it)
-            std_m[np.where(sel == False)] = 9999999            
-
-        # Magnitude selection 
-        sel = magnitude_selection(AVG_m, AVG_m[ind], sel, param['mmin'], param['mmax'])
-        std_m[np.where(sel == False)] = 9999999   
-
-        # Distance selection using dmax_final (dmax_final < dmax; after the parabola has been built)
-        sel = distance_selection(ra, dec, ra0, dec0, param['dmax_final'], sel)
-        std_m[np.where(sel == False)] = 9999999   
-
-        # Apply correction only using the selected stars
-        if nsel > len(std_m[std_m < 999999]):
-            raise RuntimeError("Not enough reference stars")
-        ind_ref = std_m.argsort()[0:nsel]
-
-        print '\nStar label {}, std: {}'.format(ind_ref[0], std_m[ind_ref[0]])
-        print 'Star label {}, std: {}'.format(ind_ref[1], std_m[ind_ref[1]])
-        print 'Star label {}, std: {}'.format(ind_ref[2], std_m[ind_ref[2]])
-        print 'Star label {}, std: {}'.format(ind_ref[3], std_m[ind_ref[3]])
-
-        mag0 = cat_mag[0][0, :]
-        cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref, 1./std_m[ind_ref]**2.)
-
-        print '------'
-        if np.array_equal(np.sort(ind_ref), np.sort(ind_ref_aux)):
-            break        
-
     fig = plt.figure()
     fig.clf()
     ax = fig.add_subplot(1,1,1)
-    ax.errorbar(AVG_m[np.where(sel == False)], std_m_aux[np.where(sel == False)], fmt='or', mec='r', markersize=4)        
-    ax.errorbar(AVG_m[np.where(sel == True)], std_m[np.where(sel == True)], fmt='ok', mec='k', markersize=4)
-    ax.errorbar(AVG_m[ind_ref], std_m[ind_ref],fmt='og', mec='g', markersize=4, linewidth=0,)
-    ax.errorbar(AVG_m[ind], std_target, fmt='*b', mec='b', markersize=8, linewidth=0,)    
+    ax.errorbar(AVG_m[np.where(sel == False)], std_m[np.where(sel == False)], fmt='or', mec='r', markersize=4)
+    ax.errorbar(AVG_m[np.where(sel == True)], std_m[np.where(sel == True)], fmt='ok', mec='g', markersize=4)
+    ax.errorbar(AVG_m[ind], std_m[ind], fmt='*b', mec='b', markersize=8, linewidth=0,)
     ax.set_xlabel(r'$\overline{m}$ (mag)')
     ax.set_ylabel(r'$\sigma$')
-    ax.set_yscale('log') 
-    ylim1max = std_m_aux[std_m_aux<99999].max()
-    ylim2max = std_m[std_m<99999].max()
-    ylim1min = std_m_aux.min()
-    ylim2min = std_m.min()
-    ax.set_ylim((min(ylim1min, ylim2min), max(ylim1max,ylim2max)))    
+    ax.set_yscale('log')
+    # ylim1max = std_m_aux[std_m_aux<99999].max()
+    # ylim2max = std_m[std_m<99999].max()
+    # ylim1min = std_m_aux.min()
+    # ylim2min = std_m.min()
+    # ax.set_ylim((min(ylim1min, ylim2min), max(ylim1max,ylim2max)))
     fig.savefig(param['output_path'] + '/RMSvsMAG/RMSplot.eps', bbox_inches='tight', pad_inches=0.05)
-    plt.close(fig)        
+    plt.close(fig)
     return cat_mag_corrected, ind_ref, 1./std_m[ind_ref]**2.
 
 
@@ -342,12 +318,11 @@ def plot_not_self_corrected(cat_mag, cat_mag_corrected, cat_mjd, ind, ind_ref, o
 
 def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
     ind = find_target(cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
-    bool_sel = np.ones(len(cat_ra[0][0, :]), dtype=bool)
-    bool_sel = distance_selection(cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'], param['dmax'], bool_sel)
-    cat_mag_corrected, ind_ref, w = extinction_correction(cat_mag[:], ind, bool_sel, param['nsel'], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
-    ref_stars_info(ind_ref, cat_mag_corrected[0][:, :], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
-    plot_self_corrected(cat_mag_corrected, cat_mjd, ind, ind_ref, o+'/MJD-'+param['field_name']+'-ref_stars_self_corrected.eps')
-    plot_not_self_corrected(cat_mag[:], cat_mag_corrected[:], cat_mjd, ind, ind_ref, o, w)
+    ind_ref = find_stars(cat_ra[0][0, :], cat_dec[0][0, :], eval(param['reference_stars']))
+    cat_mag_corrected, ind_ref, w = extinction_correction(cat_mag[:], ind, ind_ref, cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
+    # ref_stars_info(ind_ref, cat_mag_corrected[0][:, :], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
+    # plot_self_corrected(cat_mag_corrected, cat_mjd, ind, ind_ref, o+'/MJD-'+param['field_name']+'-ref_stars_self_corrected.eps')
+    # plot_not_self_corrected(cat_mag[:], cat_mag_corrected[:], cat_mjd, ind, ind_ref, o, w)
     return cat_mag_corrected, ind, ind_ref
 
 
