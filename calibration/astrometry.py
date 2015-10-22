@@ -29,7 +29,7 @@ def call_astrometry_dot_net(i, o, ra, dec, radius, scale_low, scale_high):
            '-D {} -p -U none -M none -R none -B none -J -m {} -O --new-fits %s.fits {}')\
         .format(ra, dec, radius, scale_low, scale_high, o, o, i+'*.fits')
     with open(os.devnull, "w") as f:
-        subprocess.call(cmd, shell=True, stdout=f, stderr=f)
+        subprocess.call(cmd, shell=True)#, stdout=f, stderr=f)
 
 
 def move_files(i, o):
@@ -56,4 +56,3 @@ if __name__ == '__main__':
     fp = param['test_path']
     set_wcs(fp+'phot/'+field_name+'/tmp/science/', fp+'phot/'+field_name+'/tmp/science/wcs/')
     print('DONE')
-

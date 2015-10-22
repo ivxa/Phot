@@ -1,17 +1,18 @@
 # Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
 # License: MIT, see LICENSE.md
 
+
+import matplotlib
 import numpy as np
 import sys
 import os
 import subprocess
 import pyfits
-execfile(sys.argv[1])
 
 
 def listdirs(p):
     return [os.path.join(p, d) for d in os.listdir(p) \
-            if os.path.isdir(os.path.join(p, d))]
+            if os.path.isdir(os.path.join(p, d)) and d[0] == '2']
 
 
 def file_type(d, fl):
@@ -62,8 +63,19 @@ def move_files(i, o, to_move):
         os.rename(os.path.join(i, f), os.path.join(o, f))
 
 
+def remove_empty_directories(dir_list):
+    for d in dir_list:
+        if not os.listdir(d):
+            os.removedirs(d)
+
+
 def main():
-    dir_list = listdirs(param['data_path'])
+    data_path = '/home/gamma/garrofa/xparedes/data/tjo/'
+    # data_path = '/home/gamma/garrofa/xparedes/data/tjo_test/'
+    dir_list = listdirs(data_path)
+    for d in dir_list:
+        print d
+    stop
     for d in dir_list:
         file_list = os.listdir(d)
         if 'org_completed' not in file_list:
@@ -78,7 +90,10 @@ def main():
             for (i, t) in enumerate([bias, darks, flats, V, B, R, I]):
                 move_files(d, new_dir[i], t)
 
+            remove_empty_directories(new_dir)
+
             subprocess.call(['touch', os.path.join(d, 'org_completed')])
+            subprocess.call(['touch', os.path.join(d, 'not_revised')])
 
 
 if __name__ == '__main__':

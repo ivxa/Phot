@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import subprocess
 from astropy.io import fits
+from astropy.time import Time
 param = {}
 execfile(sys.argv[1])
 
@@ -43,7 +44,9 @@ def create_catalog_arrays(i, il, sl):
     for im in il:
         cat_name = call_sextractor(i, im, sl)
         mag, x, y, flag = np.loadtxt(cat_name, usecols=(0, 2, 3, 4), unpack=True)
-
+        if 1 == 1:
+            print '\n * Number of extracted stars with 0 flag: {} \n'.format(len(flag[flag==0]))
+            sys.exit(1)
         # SExtractor is unable to read the tan-sip wcs produced by Astrometry.net
         from astropy import wcs
         w = wcs.WCS(i+'/cal/'+im)
@@ -61,7 +64,7 @@ def remove_cat_folder(i):
 
 
 def create_mjd_catalog(i, il):
-    return [fits.getheader(i+fn)['MJD'] for fn in il]
+    return [Time(fits.getheader(i+fn)['DATE-OBS']+'T'+fits.getheader(i+fn)['TIME-OBS'], format='isot', scale='utc').mjd for fn in il]
 
 
 def perform_extraction(i, frame_list, testing=1):
