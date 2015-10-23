@@ -2,6 +2,7 @@
 # License: MIT, see LICENSE.md
 
 
+import matplotlib # To avoid a bug with Ureka distribution and subprocess module
 import sys
 import calibration
 import analysis

@@ -12,7 +12,7 @@ PARAMETERS_NAME  se.param       # name of the file containing catalog contents
 #------------------------------- Extraction ----------------------------------
 
 DETECT_TYPE      CCD            # CCD (linear) or PHOTO (with gamma correction)
-DETECT_MINAREA   100 #30 #20#15#5              # min. # of pixels above threshold
+DETECT_MINAREA   100 #50 #100 #30 #20#15#5              # min. # of pixels above threshold
 
 DETECT_THRESH    2 # 2 # 5            # <sigmas> or <threshold>,<ZP> in mag.arcsec-2
 ANALYSIS_THRESH  1 # 1 # 2 # 5            # <sigmas> or <threshold>,<ZP> in mag.arcsec-2
@@ -40,7 +40,7 @@ FLAG_TYPE        OR             # flag pixel combination: OR, AND, MIN, MAX
 
 #------------------------------ Photometry -----------------------------------
 
-PHOT_APERTURES   0 # 40.0       # MAG_APER aperture diameter(s) in pixels
+PHOT_APERTURES   40.0       # MAG_APER aperture diameter(s) in pixels
 PHOT_AUTOPARAMS  2.0, 3.0 #3.5       # MAG_AUTO parameters: <Kron_fact>,<min_radius>
 PHOT_PETROPARAMS 2.0, 3.5       # MAG_PETRO parameters: <Petrosian_fact>,
                                 # <min_radius>

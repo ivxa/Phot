@@ -30,12 +30,14 @@ def make_output_folder(o):
         os.makedirs(o+'multi_night_LC')
         os.makedirs(o+'std_multi_night_plots')
         os.makedirs(o+'RMSvsMAG')
+        os.makedirs(o+'check_images')
     else:
         check_and_make('nightly_LC')
         check_and_make('multi_night_LC')
         check_and_make('std_multi_night_plots')
         check_and_make('RMSvsMAG')
         check_and_make('data')
+        check_and_make('check_images')
 
 
 def load_frame_list(f):
@@ -81,8 +83,8 @@ def analyze_data():
     frame_list = load_frame_list(param['frame_list'])
     print('OK\nMaking the star catalog from each image of the frame list...\n')
     cat_ra, cat_dec, cat_mag, cat_mjd = source_extraction.perform_extraction(param['data_path'], frame_list)
-    # print('OK\nPerforming quality control selection (number of detections)...')
-    # cat_ra, cat_dec, cat_mag, cat_mjd, frame_list = quality_control.median_number_of_stars_qc(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list)
+    print('OK\nPerforming quality control selection (number of detections)...')
+    cat_ra, cat_dec, cat_mag, cat_mjd, frame_list = quality_control.median_number_of_stars_qc(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list)
     print('OK\nMatching the stars between catalogs...')
     cat_ra, cat_dec, cat_mag, cat_mjd, frame_list = source_match.perform_match(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list)
     multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_01_qc.eps'.format(field_name))
@@ -99,7 +101,7 @@ def analyze_data():
     # cat_mag = detrending.detrend_light_curve(cat_ra, cat_dec, cat_mag)
     # multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_04_qc-diff-qc-xy-det.eps'.format(field_name))
     print('OK\nApplying an artificial offset...'),
-    cat_mag, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list = offset.add_offset(cat_mag, cat_mjd, ind)
+    cat_mag, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list = offset.add_offset(cat_mag, cat_mjd, ind, frame_list)
     print('OK\nSaving the data files of the light curves...')
     save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, output_path+'data/')
     print('OK\nCopying the setup input file...')
