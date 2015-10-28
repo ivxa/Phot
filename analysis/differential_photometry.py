@@ -186,10 +186,10 @@ def extinction_correction(cat_mag, ind, ind_ref, ra, dec, ra0, dec0,):
     avg_m, AVG_m, std_m = compute_std(cat_mag_corrected, 1, ind, len(ind_ref), ind_ref)
 
     # Second correction weighted with the std
-    mag0 = cat_mag[0][0, :]
-    w = 1./std_m[ind_ref]**2.
-    cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref, w)
-    avg_m, AVG_m, std_m = compute_std(cat_mag_corrected, 2, ind, len(ind_ref), ind_ref)
+    # mag0 = cat_mag[0][0, :]
+    # w = 1./std_m[ind_ref]**2.
+    # cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref, w)
+    # avg_m, AVG_m, std_m = compute_std(cat_mag_corrected, 2, ind, len(ind_ref), ind_ref)
 
     print '------'
     fig = plt.figure()

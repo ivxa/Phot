@@ -69,10 +69,10 @@ def copy_files(i0, o):
     os.makedirs(i2+'/cal/')
     os.makedirs(i2+'/tmp/')
     if param['disable_standard_cal'] == 0:
-        dirs_i = ['flats', 'bias', 'darks', 'B']
+        dirs_i = ['flats', 'bias', 'darks',  param['field_name']]
         dirs_o = ['flats', 'bias', 'darks', 'science']
     else:
-        dirs_i = ['B']
+        dirs_i = [param['field_name']]
         dirs_o = ['science']
     for i in range(len(dirs_i)):
         shutil.copytree(i0+dirs_i[i], i2+'/tmp/'+dirs_o[i])
