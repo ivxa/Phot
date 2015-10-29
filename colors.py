@@ -81,7 +81,7 @@ def plot_filters(MJD, MAG, ERR, dir_out):
 
 
 def main():
-    dir_base = ''
+    dir_base = '/home/gamma/garrofa/xparedes/Dropbox/photometry_tjo/mwc656'
     dir_out = os.path.join(dir_base, 'colors')
     make_dir(dir_out)
     MJD, MAG, ERR = read_data(dir_base)
