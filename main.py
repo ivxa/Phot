@@ -1,7 +1,7 @@
 # Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
 # License: MIT, see LICENSE.md
 
-
+import matplotlib
 import sys
 import calibration
 import analysis
