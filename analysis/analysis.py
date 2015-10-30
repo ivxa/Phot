@@ -29,12 +29,12 @@ def make_output_folder(o):
         os.makedirs(o+'nightly_LC')
         os.makedirs(o+'multi_night_LC')
         os.makedirs(o+'std_multi_night_plots')
-        os.makedirs(o+'RMSvsMAG')        
+        os.makedirs(o+'RMSvsMAG')
     else:
         check_and_make('nightly_LC')
         check_and_make('multi_night_LC')
         check_and_make('std_multi_night_plots')
-        check_and_make('RMSvsMAG')        
+        check_and_make('RMSvsMAG')
         check_and_make('data')
 
 
@@ -87,21 +87,27 @@ def analyze_data():
     cat_ra, cat_dec, cat_mag, cat_mjd, frame_list = source_match.perform_match(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list)
     multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_01_qc.eps'.format(field_name))
     print('\nOK\nComputing the differential photometry...\n')
-    cat_mag, ind, ind_ref = differential_photometry.compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, output_path+'multi_night_LC/')
-    multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff.eps'.format(field_name))
-    print('OK\nPerforming a quality control using photometric catalogs...'),
-    # cat_ra, cat_dec, cat_mag, cat_mjd, frame_list = quality_control.photometric_qc(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list)
-    # multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff-qc-.eps'.format(field_name))
-    print('\nOK\nAplying xy fit correction...'),
-    # cat_mag = xy_fit.fit_residuals(cat_ra, cat_dec, cat_mag)
-    # multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_03_qc-diff-qc-xy.eps'.format(field_name))
-    print('OK\nDetrending the light curves...'),
-    # cat_mag = detrending.detrend_light_curve(cat_ra, cat_dec, cat_mag)
-    # multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_04_qc-diff-qc-xy-det.eps'.format(field_name))
-    print('OK\nApplying an artificial offset...'),
-    cat_mag, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list = offset.add_offset(cat_mag, cat_mjd, ind)
-    print('OK\nSaving the data files of the light curves...')
-    save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, output_path+'data/')
+    cat_mag, ind, ind_ref, ind_comp = differential_photometry.compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, output_path+'multi_night_LC/')
+    for i in range(len(cat_mag)):
+        multi_night_std_test.perform_test(cat_mag[i], output_path+'std_multi_night_plots/S{}_std_{}_multi_night_02_qc-diff.eps'.format(str(i), field_name))
+        print('OK\nPerforming a quality control using photometric catalogs...'),
+        # cat_ra, cat_dec, cat_mag, cat_mjd, frame_list = quality_control.photometric_qc(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list)
+        # multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff-qc-.eps'.format(field_name))
+        print('\nOK\nAplying xy fit correction...'),
+        # cat_mag = xy_fit.fit_residuals(cat_ra, cat_dec, cat_mag)
+        # multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_03_qc-diff-qc-xy.eps'.format(field_name))
+        print('OK\nDetrending the light curves...'),
+        # cat_mag = detrending.detrend_light_curve(cat_ra, cat_dec, cat_mag)
+        # multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_04_qc-diff-qc-xy-det.eps'.format(field_name))
+        for ii in [ind, ind_comp[i]]:
+            if ii == ind:
+                fname = 'target'
+            else:
+                fname = 'compar'
+            print('OK\nApplying an artificial offset...'),
+            cat_mag, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list = offset.add_offset(cat_mag[i], cat_mjd, ii)
+            print('OK\nSaving the data files of the light curves...')
+            save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, output_path+'data/S{}_{}_'.format(str(i),fname))
     print('OK\nCopying the setup input file...')
     copy_param_files(sys.argv[1], output_path+'data/')
     print 'OK\n'
