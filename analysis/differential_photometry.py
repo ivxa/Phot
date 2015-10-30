@@ -212,7 +212,16 @@ def ref_star_selection(cat_mag, ind, bool_sel, nsel, ra, dec, ra0, dec0,):
 
         print '------'
         if np.array_equal(np.sort(ind_ref), np.sort(ind_ref_aux)):
+            ind_ref = ind_ref[::-1]
             return ind_ref, 1./std_m[ind_ref]**2.
+
+
+def ref_stars_info(ii, i, mag, ra, dec, ra0, dec0, w):
+    tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
+    cat = SkyCoord(ra[i]*u.degree, dec[i]*u.degree)
+    d = tar.separation(cat)
+    o = param['output_path']+'data/S{}_info'.format(str(ii))
+    np.savetxt(o, np.array([d.arcminute, ra[i], dec[i], w]), delimiter=' ')
 
 
 def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
@@ -223,15 +232,16 @@ def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
     cat_mag_corrected_list = []
     ind_ref_list = []
     ind_comp_list = []
-    for i in reversed(range(len(ind_ref))):
+    for i in range(len(ind_ref)):
         ind_excluded = ind_ref[i]
-        ind_ref_aux = [v for (k,v) in enumerate(ind_ref) if k != i]
-        w_aux = [v for (k,v) in enumerate(w) if k != i]
+        ind_ref_aux = np.array([v for (k,v) in enumerate(ind_ref) if k != i])
+        w_aux = np.array([v for (k,v) in enumerate(w) if k != i])
         mag0 = cat_mag[0][0, :]
         cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref_aux, w_aux)
         cat_mag_corrected_list.append(cat_mag_corrected)
         ind_ref_list.append(ind_ref_aux)
         ind_comp_list.append(ind_excluded)
+        ref_stars_info(i, ind_excluded, cat_mag_corrected[0][:, :], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'], w[i])
     assert len(ind_ref_list) == len(ind_ref)
     assert len(cat_mag_corrected_list) == len(ind_ref)
     return cat_mag_corrected_list, ind, ind_ref_list, ind_comp_list
@@ -244,23 +254,10 @@ if __name__ == '__main__':
 
 ## PLOTTING AT THE NEW PLOTS.PY!!
     #
-    # ref_stars_info(ind_ref, cat_mag_corrected[0][:, :], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
     # plot_self_corrected(cat_mag_corrected, cat_mjd, ind, ind_ref, o+'/MJD-'+param['field_name']+'-ref_stars_self_corrected.eps')
     # plot_not_self_corrected(cat_mag[:], cat_mag_corrected[:], cat_mjd, ind, ind_ref, o, w)
 
-# def ref_stars_info(ind_ref, mag, ra, dec, ra0, dec0):
-#     tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
-#     cat = SkyCoord(ra[ind_ref]*u.degree, dec[ind_ref]*u.degree)
-#     d = tar.separation(cat)
-#     m = [np.average(mag[:, k]) for k in ind_ref]
-#     r = [ra[k] for k in ind_ref]
-#     dc = [dec[k] for k in ind_ref]
-#     print '\n  Number of reference stars: {}'.format(len(ind_ref))
-#     for i, ir in enumerate(ind_ref):
-#         print '  - The reference star {} labeled with {} is\n' \
-#               '    placed at a DISTANCE of {:.2f} with respect the target\n' \
-#               '    and its MAGNITUDE is {:.2f} mag (RA {:.4f}, DEC {:.4f}) '.format(i+1, ir, d[i], m[i], r[i], dc[i])
-#
+
 
 
 #

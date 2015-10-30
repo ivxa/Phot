@@ -37,14 +37,15 @@ def compute_final_date(cat_mjd):
     return mjd, mjd_list
 
 
-def add_offset(cat_mag, cat_mjd, ind):
+def add_offset(cat_mag, cat_mjd, ind, offset, compute_offset):
     target_obs_mag = param['zero_magnitude']
     target_ins_mag = compute_averaged_mag(cat_mag, ind)
-    offset = target_ins_mag-target_obs_mag
+    if compute_offset:
+        offset = target_ins_mag-target_obs_mag
     cat_mag = apply_offset(cat_mag, offset)
     mag_list, std_list, nightly_avg_mag, nightly_std_mag = compute_final_magnitudes(cat_mag, ind)
     mjd, mjd_list = compute_final_date(cat_mjd)
-    return cat_mag, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list
+    return cat_mag, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list, offset
 
 
 if __name__ == '__main__':

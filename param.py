@@ -4,14 +4,14 @@
 
 param = {
     'rerun': 0,                          # 1 to recalibrate the images
-    'disable_calibration': 0,            # 1 to disable the calibration
-    'disable_standard_cal': 0,           # 1 to disable the calibration
-    'disable_screen_flat': 0,            # 1 to disable screen flats
+    'disable_calibration': 1,            # 1 to disable the calibration
+    'disable_standard_cal': 1,           # 1 to disable the calibration
+    'disable_screen_flat': 1,            # 1 to disable screen flats
     'disable_bias': 1,                   # 1 to disable bias correction
-    'disable_calibration_shutter': 0,    # 1 to disable shutter map correction
+    'disable_calibration_shutter': 1,    # 1 to disable shutter map correction
     'disable_calibration_lin': 1,        # 1 to disable non-linearity correction
     'disable_analysis': 0,               # 1 to disable the analysis
-    'disable_analysis_extraction': 0,    # 1 to disable the source extraction
+    'disable_analysis_extraction': 1,    # 1 to disable the source extraction
     'disable_parab_fit': 1,              # 1 to disable parabola fitting for comparison star selection process
     'disable_plots': 0,                  # 1 to disable the plotting
     'disable_plots_cycles': 0,           # 1 to disable the orbital cycle plots (useful only for binary systems)
@@ -44,11 +44,11 @@ param = {
     'max_nstars_missmatch_tolerance': 0.75, # Maximum ratio of bad matching between frames
     'scale_low': 3.87,                   # Minimum pixel scale of the CCD in arcsec/pix
     'scale_high': 3.89,                  # Maximum pixel scale of the CCD in arcsec/pix
+    'output_path': '/home/gamma/garrofa/xparedes/photometry/test/mwc656/',               # The output path
     'frame_list': '/home/gamma/garrofa/xparedes/photometry/test/mwc656/frame_list.txt',  # Frame list path
-    'data_path': '/home/gamma/garrofa/xparedes/data/tfrm_data/test/',                    # Data path
+    'data_path': '/home/gamma/garrofa/xparedes/data/test/',                              # Data path
     'crop_region': (998.0, 3098.0, 998.0, 3098.0), #(1550.0, 2950.0, 1550.0, 2550.0)     # Cropping coordinates of the image (in pixels)
     'source_xy_shift': (0, 0),                                                           # If the source is not centered (needed for centering test)
     'saturation_level': 55000.,                                                          # Stars above this value are discarded (or the image if the star is saturated)
-    'saturation_level_post_calibration': 53000.,                                         # After calibration the saturation level changes
-    'output_path': '/home/gamma/garrofa/xparedes/Dropbox/photometry/mwc656/'             # The output path
+    'saturation_level_post_calibration': 53000.                                          # After calibration the saturation level changes
 }
