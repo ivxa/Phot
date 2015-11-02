@@ -41,10 +41,18 @@ def plot(x, y, o):
     plt.close(fig)
 
 
-def perform_test(cat_mag, o):
+def perform_test(cat_mag, o, ind=-1, ind_comp=-1, ind_ref=-1):
     cat_mag_avg = compute_nightly_average(cat_mag)
     avg_mag, std_mag = compute_statistics(cat_mag_avg)
-    plot(avg_mag[std_mag.argsort()], sorted(std_mag), o)
+    # x = avg_mag[std_mag.argsort()]
+    # y = sorted(std_mag)
+    plot(avg_mag, std_mag, o)
+    if ind != -1:
+        flag = np.zeros(len(avg_mag))
+        flag[ind] = 1
+        flag[ind_comp] = 2
+        flag[ind_ref] = 3
+        np.savetxt(o[:-3]+'dat', np.transpose((avg_mag, std_mag, flag)), delimiter=' ')
 
 
 if __name__ == '__main__':

@@ -88,8 +88,8 @@ def analyze_data():
     multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_01_qc.eps'.format(field_name))
     print('\nOK\nComputing the differential photometry...\n')
     cat_mag, ind, ind_ref, ind_comp = differential_photometry.compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, output_path+'multi_night_LC/')
+    multi_night_std_test.perform_test(cat_mag[0], output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff.eps'.format(str('0'), field_name))
     for (i, cat_mag_i) in enumerate(cat_mag):
-        multi_night_std_test.perform_test(cat_mag_i, output_path+'std_multi_night_plots/S{}_std_{}_multi_night_02_qc-diff.eps'.format(str(i), field_name))
         print('OK\nPerforming a quality control using photometric catalogs...'),
         # cat_ra, cat_dec, cat_mag_i, cat_mjd, frame_list = quality_control.photometric_qc(cat_ra, cat_dec, cat_mag_i, cat_mjd, frame_list)
         # multi_night_std_test.perform_test(cat_mag_i, output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff-qc-.eps'.format(field_name))
@@ -111,6 +111,7 @@ def analyze_data():
             cat_mag_i, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list, offset_value = offset.add_offset(cat_mag_i, cat_mjd, ii, offset_value, compute_offset)
             print('OK\nSaving the data files of the light curves...')
             save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, output_path+'data/S{}_{}_'.format(str(i),fname))
+        multi_night_std_test.perform_test(cat_mag_i, output_path+'std_multi_night_plots/S{}_std_{}_multi_night_02_qc-diff.eps'.format(str(i), field_name), ind, ind_comp[i], ind_ref[i])
     print('OK\nCopying the setup input file...')
     np.savetxt(output_path+'data/nstars', np.array([len(cat_mag)]), fmt='%i')
     copy_param_files(sys.argv[1], output_path+'data/')

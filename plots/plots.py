@@ -42,12 +42,13 @@ def load_data(i, fname):
 
 def plot1(o, fn, tn, nstars):
     fname = os.path.join(o, 'multi_night_LC/MJD-{}-average.pdf'.format(fn))
-    fig, ax = plt.subplots(3, nstars, sharex=True, figsize=(nstars*3.5, 3*2.5))
+    fig, ax = plt.subplots(4, nstars, sharex=False, figsize=(nstars*3.5, 4*2.5))
     fig.subplots_adjust(wspace=0.3)
 
     for j in range(nstars):
         mjd_list_t, mag_list_t, std_list_t, mjd_t, nightly_avg_mag_t, nightly_std_mag_t = load_data(o, '{}_target'.format(str(j)))
         mjd_list_c, mag_list_c, std_list_c, mjd_c, nightly_avg_mag_c, nightly_std_mag_c = load_data(o, '{}_compar'.format(str(j)))
+        avg_mag_all, std_mag_all, flags = np.loadtxt(o+'std_multi_night_plots/S{}_std_{}_multi_night_02_qc-diff.dat'.format(str(j), fn), unpack=True, delimiter=' ')
 
         target_mean = 'Mean mag: {:.3f} mag'.format(np.average(nightly_avg_mag_t))
         target_std = 'Mean std: {:.3f} mag'.format(np.average(nightly_std_mag_t))
@@ -69,26 +70,36 @@ def plot1(o, fn, tn, nstars):
 
         text_info = '- ' +  tn + r':\\' + target_mean + r'\\' + target_std + r'\\\\' + r'- Comparison star {}:\\(Corrected using {} comparison stars)\\'.format(j,nstars-1) + compar_mean + r'\\' + compar_std + r'\\' + compar_coord + r'\\' + compar_dist + r'\\' + compar_weight + r'\\\\' + last_obs
 
-        # %ax[0, j].set_title('')
         ax[0, j].errorbar(mjd_t, nightly_avg_mag_t, yerr=nightly_std_mag_t, fmt='b.', markersize=8, elinewidth=1.0, capsize=0, label='{}'.format(tn))
         ax[0, j].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
 
-        ax[1, j].errorbar(mjd_c, nightly_avg_mag_c, yerr=nightly_std_mag_c, fmt='ks', markersize=5, elinewidth=1.0, capsize=0, label='Comparison star {}'.format(j))
+        ax[1, j].errorbar(mjd_c, nightly_avg_mag_c, yerr=nightly_std_mag_c, fmt='gs', markersize=5, elinewidth=1.0, capsize=0, label='Comparison star {}'.format(j))
         ax[1, j].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
 
         offset_value = np.average(nightly_avg_mag_c)-np.average(nightly_avg_mag_t)
         ax[2, j].errorbar(mjd_t, nightly_avg_mag_t, yerr=nightly_std_mag_t, fmt='b.', markersize=8, elinewidth=1.0, capsize=0, label='{}'.format(tn))
-        ax[2, j].errorbar(mjd_c, nightly_avg_mag_c-offset_value, yerr=nightly_std_mag_c, fmt='ks', markersize=5, elinewidth=1.0, alpha=0.5, capsize=0, label='Comparison star {} (offset)'.format(j))
+        ax[2, j].errorbar(mjd_c, nightly_avg_mag_c-offset_value, yerr=nightly_std_mag_c, fmt='gs', markersize=5, elinewidth=1.0, alpha=0.5, capsize=0, label='Comparison star {} (offset)'.format(j))
         ax[2, j].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
-        ax[2, j].annotate(text_info, xy=(1, 0), xycoords='axes fraction', fontsize=11,
+
+        ax[3, j].plot(avg_mag_all[flags==0], std_mag_all[flags==0], 'k.', alpha=0.5, label='Field stars')
+        ax[3, j].plot(avg_mag_all[flags==3], std_mag_all[flags==3], 'y.', label='Ref. stars')
+        ax[3, j].plot(avg_mag_all[flags==2], std_mag_all[flags==2], 'g.', label='Cal. star {}'.format(j))
+        ax[3, j].plot(avg_mag_all[flags==1], std_mag_all[flags==1], 'b.', label='{}'.format(tn))
+
+        ax[3, j].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1, ncol=2)
+        ax[3, j].set_yscale('log')
+        ax[3, j].set_xlabel(r'$\overline{m}$ [mag]')
+        ax[3, j].set_ylabel(r'$\sigma_{m}$ [mag]')
+
+        ax[3, j].annotate(text_info, xy=(1, 0), xycoords='axes fraction', fontsize=11,
                            xytext=(0, -40), textcoords='offset points',
                            ha='right', va='top')
 
     for i in range(3):
         ax[i, 0].set_ylabel('$m$ [mag]')
     for j in range(nstars):
-        ax[2, j].set_xlabel('MJD')
         for i in range(3):
+            ax[i, j].set_xlabel('MJD')
             # ax[i, j].xaxis.set_minor_locator(MultipleLocator(5))
             # ax[i, j].yaxis.set_major_locator(MultipleLocator(0.01))
             # ax[i, j].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
