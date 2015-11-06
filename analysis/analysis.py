@@ -52,7 +52,7 @@ def load_frame_list(f):
     return sorted(frame_list)
 
 
-def save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, o, testing=1):
+def save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list, o, testing=1):
     if testing == 1:
         print '\n  len(mjd_list): {}'.format(len(mjd_list))
         print '  len(mag_list): {}'.format(len(mag_list))
@@ -61,9 +61,9 @@ def save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_ma
         print '  nightly_avg_mag.shape: {}'.format(np.asarray(nightly_avg_mag).shape)
         print '  nightly_std_mag.shape: {}\n'.format(np.asarray(nightly_std_mag).shape)
     np.savetxt(o+'MJD_MAG_ERR-{}-all_frames.dat'.format(param['field_name']),
-               np.transpose((mjd_list, mag_list, std_list)), delimiter=' ')
+               np.transpose((mjd_list, mag_list, std_list, night_numbering_list)), delimiter=' ')
     np.savetxt(o+'MJD_MAG_ERR-{}-nightly_average.dat'.format(param['field_name']),
-               np.transpose((mjd, nightly_avg_mag, nightly_std_mag)), delimiter=' ')
+               np.transpose((mjd, nightly_avg_mag, nightly_std_mag, np.array(range(1,len(mjd)+1)))), delimiter=' ')
 
 
 def copy_param_files(f, o):
@@ -114,9 +114,9 @@ def analyze_data():
                 fname = 'refere'
                 compute_offset = False
             print('OK\nApplying an artificial offset...'),
-            cat_mag_i, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list, offset_value = offset.add_offset(cat_mag_i, cat_mjd, ii, offset_value, compute_offset)
+            cat_mag_i, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list, night_numbering_list, offset_value = offset.add_offset(cat_mag_i, cat_mjd, ii, offset_value, compute_offset)
             print('OK\nSaving the data files of the light curves...')
-            save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, output_path+'data/S{}_{}_'.format(str(i),fname))
+            save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list, output_path+'data/S{}_{}_'.format(str(i),fname))
         multi_night_std_test.perform_test(cat_mag_i, output_path+'std_multi_night_plots/S{}_std_{}_multi_night_02_qc-diff.eps'.format(str(i), field_name), ind, ind_comp[i], ind_ref[i], ind_comp1, ind_comp2)
     print('OK\nCopying the setup input file...')
     np.savetxt(output_path+'data/nstars', np.array([len(cat_mag)]), fmt='%i')

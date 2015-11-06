@@ -40,16 +40,106 @@ def load_data(i, fname):
     return mjd_list, mag_list, std_list, mjd, nightly_avg_mag, nightly_std_mag
 
 
-def mega_plot(o, suff, fn, tn, nstars):
+def nightly_plots(o, suff, fn, tn, nstars, pdf):
+
+    def tick_function(tick_list):
+        return ['{:.2f}'.format((Time(t, format='mjd', scale='utc').datetime-Time(tick_list[0], format='mjd', scale='utc').datetime).total_seconds()/60.) for t in tick_list]
+
+    _mjd_list, _mag_list, _std_list, _night_list = np.loadtxt(o + 'data/S0_target_MJD_MAG_ERR-{}-nightly_average.dat'.format(param['field_name']), unpack=True, delimiter=' ')
+    mjd_list, mag_list, std_list, night_list = np.loadtxt(o + 'data/S0_target_MJD_MAG_ERR-{}-all_frames.dat'.format(param['field_name']), unpack=True, delimiter=' ')
+    mjd_list1, mag_list1, std_list1, night_list1 = np.loadtxt(o + 'data/S0_compa1_MJD_MAG_ERR-{}-all_frames.dat'.format(param['field_name']), unpack=True, delimiter=' ')
+    mjd_list2, mag_list2, std_list2, night_list2 = np.loadtxt(o + 'data/S0_compa2_MJD_MAG_ERR-{}-all_frames.dat'.format(param['field_name']), unpack=True, delimiter=' ')
+    nnights = int(max(_night_list))
+
+    plt.close('all')
+    fig, ax = plt.subplots(nnights, 4, sharex=False, figsize=(4*4.5, nnights*4)) # 1.5 l'he baixat
+
+    alpha_plots = 0.8
+    for n in _night_list:
+        n = int(n)-1
+        n1 = n+1
+        ax[n, 0].errorbar(mjd_list[night_list == n1], mag_list[night_list == n1], yerr=std_list[night_list == n1], fmt='b.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='{}'.format(tn))
+        ax[n, 0].set_ylabel('$m$ [mag]')
+        ax[n, 0].set_xlabel('MJD')
+        ax[n, 0].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[n, 0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        ax[n, 0].set_title('Night {} of {}\nStart: {}\nEnd: {}'.format(n1, nnights, Time(mjd_list[night_list == n1][0], format='mjd', scale='utc' ).datetime, Time(mjd_list[night_list == n1][-1], format='mjd', scale='utc' ).datetime), y=1.2)
+        axtop = ax[n, 0].twiny()
+        axtop.set_xticks(ax[n, 0].get_xticks())
+        axtop.set_xbound(ax[n, 0].get_xbound())
+        axtop.set_xticklabels(tick_function(ax[n, 0].get_xticks()))#, rotation=70, ha='left')
+        axtop.set_xlabel('Elapsed time [minutes]')
+        ax[n, 0].set_ylim(ax[n, 0].get_ylim()[::-1])
+        ax[n, 0].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+        ax[n, 0].grid()
+        ax[n, 0].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+
+        ax[n, 1].errorbar(mjd_list1[night_list1 == n1], mag_list1[night_list1 == n1], yerr=std_list1[night_list1 == n1], fmt='g.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='Comp. star 1')
+        ax[n, 1].set_ylabel('$m$ [mag]')
+        ax[n, 1].set_xlabel('MJD')
+        ax[n, 1].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[n, 1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        axtop = ax[n, 1].twiny()
+        axtop.set_xticks(ax[n, 1].get_xticks())
+        axtop.set_xbound(ax[n, 1].get_xbound())
+        axtop.set_xticklabels(tick_function(ax[n, 1].get_xticks()))#, rotation=70, ha='left')
+        axtop.set_xlabel('Elapsed time [minutes]')
+        ax[n, 1].set_ylim(ax[n, 1].get_ylim()[::-1])
+        ax[n, 1].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+        ax[n, 1].grid()
+        ax[n, 1].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+
+        ax[n, 2].errorbar(mjd_list2[night_list2 == n1], mag_list2[night_list2 == n1], yerr=std_list2[night_list2 == n1], fmt='gs', markersize=5, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='Comp. star 2')
+        ax[n, 2].set_ylabel('$m$ [mag]')
+        ax[n, 2].set_xlabel('MJD')
+        ax[n, 2].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[n, 2].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        axtop = ax[n, 2].twiny()
+        axtop.set_xticks(ax[n, 2].get_xticks())
+        axtop.set_xbound(ax[n, 2].get_xbound())
+        axtop.set_xticklabels(tick_function(ax[n, 2].get_xticks()))#, rotation=70, ha='left')
+        axtop.set_xlabel('Elapsed time [minutes]')
+        ax[n, 2].set_ylim(ax[n, 2].get_ylim()[::-1])
+        ax[n, 2].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+        ax[n, 2].grid()
+        ax[n, 2].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+
+        offset_value = np.average(mag_list1[night_list1 == n1])-np.average(mag_list[night_list == n1])
+        ax[n, 3].errorbar(mjd_list[night_list == n1], mag_list[night_list == n1], yerr=std_list[night_list == n1], fmt='b.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='{}'.format(tn))
+        ax[n, 3].errorbar(mjd_list1[night_list1 == n1], mag_list1[night_list1 == n1]-offset_value, yerr=std_list1[night_list1 == n1], fmt='g.', markersize=7, alpha=0.5, elinewidth=1.0, capsize=0, label='Comp. star 1 (offset)'.format(tn))
+        ax[n, 3].set_ylabel('$m$ [mag]')
+        ax[n, 3].set_xlabel('MJD')
+        ax[n, 3].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[n, 3].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        axtop = ax[n, 3].twiny()
+        axtop.set_xticks(ax[n, 3].get_xticks())
+        axtop.set_xbound(ax[n, 3].get_xbound())
+        axtop.set_xticklabels(tick_function(ax[n, 3].get_xticks()))#, rotation=70, ha='left')
+        axtop.set_xlabel('Elapsed time [minutes]')
+        ax[n, 3].set_ylim(ax[n, 3].get_ylim()[::-1])
+        ax[n, 3].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+        ax[n, 3].grid()
+        # ax[n, 3].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1, bbox_to_anchor=(0., 1.3, 1., .102))
+
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close()
+
+
+def mega_plot(o, suff, fn, tn, nstars, pdf):
     if suff == 'average':
         tname = 'Nightly averaged'
+        alpha_plots = 0.5
+        alpha_plots2 = 0.7
     else:
         tname = ''
+        alpha_plots = 0.3
+        alpha_plots2 = 0.5
 
     fname = os.path.join(o, 'multi_night_LC/megaplot-{}-{}.pdf'.format(fn, suff))
 
     plt.close('all')
-    fig, ax = plt.subplots(8, nstars, sharex=False, figsize=(nstars*4.5, 12*2.5))
+    fig, ax = plt.subplots(9+1, nstars, sharex=False, figsize=(nstars*4.5, 14*2.5))
 
     RA = []
     DEC = []
@@ -59,10 +149,10 @@ def mega_plot(o, suff, fn, tn, nstars):
         DEC.append(float(info[2]))
 
     for j in range(nstars):
-        mjd_list_t, mag_list_t, std_list_t, mjd_t, nightly_avg_mag_t, nightly_std_mag_t = load_data(o, '{}_target'.format(str(j)))
-        mjd_list_c, mag_list_c, std_list_c, mjd_c, nightly_avg_mag_c, nightly_std_mag_c = load_data(o, '{}_refere'.format(str(j)))
-        mjd_list_c1, mag_list_c1, std_list_c1, mjd_c1, nightly_avg_mag_c1, nightly_std_mag_c1 = load_data(o, '{}_compa1'.format(str(j)))
-        mjd_list_c2, mag_list_c2, std_list_c2, mjd_c2, nightly_avg_mag_c2, nightly_std_mag_c2 = load_data(o, '{}_compa2'.format(str(j)))
+        mjd_list_t, mag_list_t, std_list_t, mjd_t, nightly_avg_mag_t, nightly_std_mag_t, night_list = load_data(o, '{}_target'.format(str(j)))
+        mjd_list_c, mag_list_c, std_list_c, mjd_c, nightly_avg_mag_c, nightly_std_mag_c, night_list = load_data(o, '{}_refere'.format(str(j)))
+        mjd_list_c1, mag_list_c1, std_list_c1, mjd_c1, nightly_avg_mag_c1, nightly_std_mag_c1, night_list = load_data(o, '{}_compa1'.format(str(j)))
+        mjd_list_c2, mag_list_c2, std_list_c2, mjd_c2, nightly_avg_mag_c2, nightly_std_mag_c2, night_list = load_data(o, '{}_compa2'.format(str(j)))
         avg_mag_all, std_mag_all, flags = np.loadtxt(o+'std_multi_night_plots/S{}_std_{}_multi_night_02_qc-diff.dat'.format(str(j), fn), unpack=True, delimiter=' ')
 
         if suff != 'average':
@@ -121,109 +211,133 @@ def mega_plot(o, suff, fn, tn, nstars):
             return [Time(t, format='mjd', scale='utc' ).datetime.date() for t in tick_list]
 
         pha_t, mag_pha_t, mag_err_pha_t = compute_orbital_phase(mjd_t, nightly_avg_mag_t, nightly_std_mag_t)
-        ax[0, j].errorbar(pha_t, mag_pha_t, yerr=mag_err_pha_t, fmt='b.', alpha=0.5, markersize=7, elinewidth=1.0, capsize=0, label='{}'.format(tn))
-        ax[0, j].set_title('(Ref. stars set {})\n{} LC of {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}'.format(str(j), tname, tn, target_mean, target_std1, target_std2))
+        ax[0, j].errorbar(pha_t, mag_pha_t, fmt='b.', alpha=alpha_plots, markersize=7, elinewidth=1.0, capsize=0, label='{}'.format(tn))
+        ax[0, j].set_title('(Corrected using the reference star set {})\n{} LC of {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}'.format(str(j), tname, tn, target_mean, target_std1, target_std2))
         ax[0, j].set_xlim((0,2))
         ax[0, 0].set_ylabel('$m$ [mag]')
-        ax[0, j].set_xlabel('PHASE')
+        ax[0, j].set_xlabel('PHASE (P = {:.3f} d)'.format(param['period']))
         ax[0, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[0, j].xaxis.set_minor_locator(MultipleLocator(0.1))
         ax[0, j].set_ylim(ax[0, j].get_ylim()[::-1])
         ax[0, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[0, j].grid()
 
-
-        ax[1, j].errorbar(mjd_t, nightly_avg_mag_t, yerr=nightly_std_mag_t, fmt='b.', markersize=7, alpha=0.7, elinewidth=1.0, capsize=0, label='{}'.format(tn))
+        ax[1, j].errorbar(mjd_t, nightly_avg_mag_t, fmt='b.', markersize=7, alpha=alpha_plots2, elinewidth=1.0, capsize=0, label='{}'.format(tn))
         ax[1, 0].set_ylabel('$m$ [mag]')
         ax[1, j].set_xlabel('MJD')
         ax[1, j].yaxis.set_minor_locator(MultipleLocator(0.005))
-        ax[1, j].set_ylim(ax[1, j].get_ylim()[::-1])
         ax[1, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         axtop = ax[1, j].twiny()
         axtop.set_xticks(ax[1,j].get_xticks())
         axtop.set_xbound(ax[1,j].get_xbound())
         axtop.set_xticklabels(tick_function(ax[1,j].get_xticks()), rotation=70, ha='left')
+        ax[1, j].set_ylim(ax[1, j].get_ylim()[::-1])
         ax[1, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
         ax[1, j].grid()
 
-
-        ax[2, j].errorbar(mjd_c1, nightly_avg_mag_c1, fmt='g.', markersize=5, elinewidth=1.0, capsize=0, label='Comparison star {} ($\sigma$ = {:.4f})'.format(tname, 1, np.std(nightly_avg_mag_c1)))
-        ax[2, j].set_title('{} LC of comp. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(1), compar1_mean, compar1_std1, compar1_std2, ra1, dec1, tn, d1))
+        pha_t, mag_pha_t, mag_err_pha_t = compute_orbital_phase(mjd_t, nightly_avg_mag_t, nightly_std_mag_t)
+        ax[2, j].errorbar(pha_t, mag_pha_t, yerr=mag_err_pha_t, fmt='b.', alpha=alpha_plots, markersize=7, elinewidth=1.0, capsize=0, label='{}'.format(tn))
+        ax[2, j].set_title('{} LC of {} with error bars\n(computed as the std of the nightly images)'.format(tname, tn))
+        ax[2, j].set_xlim((0,2))
         ax[2, 0].set_ylabel('$m$ [mag]')
-        ax[2, j].set_xlabel('MJD')
+        ax[2, j].set_xlabel('PHASE (P = {:.3f} d)'.format(param['period']))
         ax[2, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[2, j].xaxis.set_minor_locator(MultipleLocator(0.1))
         ax[2, j].set_ylim(ax[2, j].get_ylim()[::-1])
         ax[2, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
-        ax[2, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
         ax[2, j].grid()
 
-
-        ax[3, j].errorbar(mjd_c2, nightly_avg_mag_c2, fmt='gs', markersize=3, elinewidth=1.0, capsize=0, markeredgewidth=0, label='Comparison star {} ($\sigma$ = {:.4f})'.format(2, np.std(nightly_avg_mag_c2)))
-        ax[3, j].set_title('{} LC of comp. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(2), compar2_mean, compar2_std1, compar2_std2, ra2, dec2, tn, d2))
+        ax[3, j].errorbar(mjd_t, nightly_avg_mag_t, yerr=nightly_std_mag_t, fmt='b.', markersize=7, alpha=alpha_plots2, elinewidth=1.0, capsize=0, label='{}'.format(tn))
         ax[3, 0].set_ylabel('$m$ [mag]')
         ax[3, j].set_xlabel('MJD')
         ax[3, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[3, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        axtop = ax[3, j].twiny()
+        axtop.set_xticks(ax[3,j].get_xticks())
+        axtop.set_xbound(ax[3,j].get_xbound())
+        axtop.set_xticklabels(tick_function(ax[1,j].get_xticks()), rotation=70, ha='left')
         ax[3, j].set_ylim(ax[3, j].get_ylim()[::-1])
-        ax[3,j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[3, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
         ax[3, j].grid()
 
-        offset_value1 = np.average(nightly_avg_mag_c1)-np.average(nightly_avg_mag_t)
-        offset_value2 = np.average(nightly_avg_mag_c2)-np.average(nightly_avg_mag_t)
-        ax[4, j].errorbar(mjd_t, nightly_avg_mag_t, fmt='b.', markersize=7, elinewidth=1.0, capsize=0, label='{}'.format(tn))
-        ax[4, j].errorbar(mjd_c1, nightly_avg_mag_c1-offset_value1, fmt='g.', markersize=5, elinewidth=1.0, alpha=0.5, capsize=0, label='Comparison star {} (offset)'.format(1))
-        ax[4, j].set_title('{} LCs of {} and comp. star {}'.format(tname, tn, 1))
+        ax[4, j].errorbar(mjd_c1, nightly_avg_mag_c1, fmt='g.', markersize=5, alpha=alpha_plots2, elinewidth=1.0, capsize=0, label='Comparison star {} ($\sigma$ = {:.4f})'.format(tname, 1, np.std(nightly_avg_mag_c1)))
+        ax[4, j].set_title('{} LC of comp. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(1), compar1_mean, compar1_std1, compar1_std2, ra1, dec1, tn, d1))
         ax[4, 0].set_ylabel('$m$ [mag]')
         ax[4, j].set_xlabel('MJD')
         ax[4, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[4, j].set_ylim(ax[4, j].get_ylim()[::-1])
-        ax[4,j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        ax[4, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[4, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
         ax[4, j].grid()
 
-        ax[5, j].errorbar(mjd_c, nightly_avg_mag_c, fmt='r.', markersize=5, elinewidth=1.0, capsize=0, label='Excluded reference star {} ($\sigma$ = {:.4f})'.format(j, np.std(nightly_avg_mag_c)))
-        ax[5, j].set_title('{} LC of the excluded ref. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nCorrection weight (when included): {:.2e}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(j), compar_mean, compar_std1, compar_std2, w, ra, dec, tn, d))
+        ax[5, j].errorbar(mjd_c2, nightly_avg_mag_c2, fmt='gs', markersize=3, alpha=alpha_plots2, elinewidth=1.0, capsize=0, markeredgewidth=0, label='Comparison star {} ($\sigma$ = {:.4f})'.format(2, np.std(nightly_avg_mag_c2)))
+        ax[5, j].set_title('{} LC of comp. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(2), compar2_mean, compar2_std1, compar2_std2, ra2, dec2, tn, d2))
         ax[5, 0].set_ylabel('$m$ [mag]')
         ax[5, j].set_xlabel('MJD')
         ax[5, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[5, j].set_ylim(ax[5, j].get_ylim()[::-1])
-        ax[5, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        ax[5,j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[5, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
         ax[5, j].grid()
 
-        ax[6, j].plot(avg_mag_all[flags==0], std_mag_all[flags==0], 'k.', alpha=0.5, label='Field stars', ms=10)
-        ax[6, j].plot(avg_mag_all[flags==3], std_mag_all[flags==3], 'y.', label='Ref. stars', ms=10)
-        ax[6, j].plot(avg_mag_all[flags==4], std_mag_all[flags==4], 'g.', label='Comp. star 1', ms=10)
-        ax[6, j].plot(avg_mag_all[flags==5], std_mag_all[flags==5], 'gs', label='Comp. star 2', ms=6, markeredgewidth=0,)
-        ax[6, j].plot(avg_mag_all[flags==2], std_mag_all[flags==2], 'r.', label='Excluded ref. star {}'.format(j), ms=10)
-        ax[6, j].plot(avg_mag_all[flags==1], std_mag_all[flags==1], 'b.', label='{}'.format(tn), ms=10)
-        ax[6, j].set_yscale('log')
-        ax[6, j].set_xlabel(r'$\overline{m}$ [mag]')
-        ax[6, j].set_ylabel(r'$\sigma_{m}$ [mag]')
-        ax[6, j].set_title('Nightly standard deviation', y=1.40)
-        ax[6, j].legend(bbox_to_anchor=(0., 1.3, 1., .102), loc=9, fancybox=True, framealpha=0.5, numpoints=1, ncol=2)
+        offset_value1 = np.average(nightly_avg_mag_c1)-np.average(nightly_avg_mag_t)
+        offset_value2 = np.average(nightly_avg_mag_c2)-np.average(nightly_avg_mag_t)
+        ax[6, j].errorbar(mjd_t, nightly_avg_mag_t, fmt='b.', markersize=7, alpha=alpha_plots2, elinewidth=1.0, capsize=0, label='{}'.format(tn))
+        ax[6, j].errorbar(mjd_c1, nightly_avg_mag_c1-offset_value1, fmt='g.', markersize=5, elinewidth=1.0, alpha=0.5, capsize=0, label='Comparison star {} (offset)'.format(1))
+        ax[6, j].set_title('{} LCs of {} and comp. star {}'.format(tname, tn, 1))
+        ax[6, 0].set_ylabel('$m$ [mag]')
+        ax[6, j].set_xlabel('MJD')
+        ax[6, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[6, j].set_ylim(ax[6, j].get_ylim()[::-1])
+        ax[6,j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        ax[6, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
         ax[6, j].grid()
 
-        ax[7, j].plot(RA, DEC, 'y.', label='Ref. stars', ms=10)
-        ax[7, j].plot(ra, dec, 'r.', label='Excluded ref. star', ms=10)
+        ax[7, j].errorbar(mjd_c, nightly_avg_mag_c, fmt='r.', markersize=5, alpha=alpha_plots2, elinewidth=1.0, capsize=0, label='Excluded reference star {} ($\sigma$ = {:.4f})'.format(j, np.std(nightly_avg_mag_c)))
+        ax[7, j].set_title('{} LC of the excluded ref. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nCorrection weight (when included): {:.2e}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(j), compar_mean, compar_std1, compar_std2, w, ra, dec, tn, d))
+        ax[7, 0].set_ylabel('$m$ [mag]')
+        ax[7, j].set_xlabel('MJD')
+        ax[7, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[7, j].set_ylim(ax[7, j].get_ylim()[::-1])
+        ax[7, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        ax[7, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+        ax[7, j].grid()
+
+        ax[8, j].plot(avg_mag_all[flags==0], std_mag_all[flags==0], 'k.', alpha=0.5, label='Field stars', ms=10)
+        ax[8, j].plot(avg_mag_all[flags==3], std_mag_all[flags==3], 'y.', label='Ref. stars', ms=10)
+        ax[8, j].plot(avg_mag_all[flags==4], std_mag_all[flags==4], 'g.', label='Comp. star 1', ms=10)
+        ax[8, j].plot(avg_mag_all[flags==5], std_mag_all[flags==5], 'gs', label='Comp. star 2', ms=6, markeredgewidth=0,)
+        ax[8, j].plot(avg_mag_all[flags==2], std_mag_all[flags==2], 'r.', label='Excluded ref. star {}'.format(j), ms=10)
+        ax[8, j].plot(avg_mag_all[flags==1], std_mag_all[flags==1], 'b.', label='{}'.format(tn), ms=10)
+        ax[8, j].set_yscale('log')
+        ax[8, j].set_xlabel(r'$\overline{m}$ [mag]')
+        ax[8, j].set_ylabel(r'$\sigma_{m}$ [mag]')
+        ax[8, j].set_title('Nightly standard deviation', y=1.40)
+        ax[8, j].legend(bbox_to_anchor=(0., 1.3, 1., .102), loc=9, fancybox=True, framealpha=0.5, numpoints=1, ncol=2)
+        ax[8, j].grid()
+
+        ax[9, j].plot(RA, DEC, 'y.', label='Ref. stars', ms=10)
+        ax[9, j].plot(ra, dec, 'r.', label='Excluded ref. star', ms=10)
         from astropy.coordinates import SkyCoord
         from astropy import units as u
         c = SkyCoord(param['ra'], param['dec'], unit=(u.hour, u.deg))
-        ax[7, j].plot(c.ra.deg, c.dec.deg, 'b.', label='{}'.format(tn), ms=10)
-        ax[7, j].plot(ra1, dec1, 'g.', label='Comp. star 1', ms=10)
-        ax[7, j].plot(ra2, dec2, 'gs', label='Comp. star 2', markeredgewidth=0, ms=6)
-        ax[7, j].set_xlabel('RA (deg)')
-        ax[7, j].set_ylabel('DEC (deg)')
-        ax[7, j].set_title('Equatorial map', y=1.4)
-        ax[7, j].legend(bbox_to_anchor=(0., 1.3, 1., .102), loc=9, fancybox=True, framealpha=0.5, numpoints=1, ncol=2)
-        ax[7, j].yaxis.set_minor_locator(MultipleLocator(0.05))
-        ax[7, j].xaxis.set_minor_locator(MultipleLocator(0.05))
-        ax[7, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
-        ax[7, j].set_xticklabels(ax[7, j].get_xticks(), rotation=70, ha='right')
-        ax[7, j].grid()
+        ax[9, j].plot(c.ra.deg, c.dec.deg, 'b.', label='{}'.format(tn), ms=10)
+        ax[9, j].plot(ra1, dec1, 'g.', label='Comp. star 1', ms=10)
+        ax[9, j].plot(ra2, dec2, 'gs', label='Comp. star 2', markeredgewidth=0, ms=6)
+        ax[9, j].set_xlabel('RA (deg)')
+        ax[9, j].set_ylabel('DEC (deg)')
+        ax[9, j].set_title('Equatorial map', y=1.4)
+        ax[9, j].legend(bbox_to_anchor=(0., 1.3, 1., .102), loc=9, fancybox=True, framealpha=0.5, numpoints=1, ncol=2)
+        ax[9, j].yaxis.set_minor_locator(MultipleLocator(0.05))
+        ax[9, j].xaxis.set_minor_locator(MultipleLocator(0.05))
+        ax[9, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        ax[9, j].set_xticklabels(ax[9, j].get_xticks(), rotation=70, ha='right')
+        ax[9, j].grid()
 
     plt.tight_layout()
-    fig.savefig(fname, bbox_inches='tight', pad_inches=0.05)
+    pdf.savefig()
+    plt.close()
+    # fig.savefig(fname, bbox_inches='tight', pad_inches=0.05)
     # auto_crop_img(fname)
 
 
@@ -382,8 +496,11 @@ def make_plots():
     title_name = param['title_name']
     nstars = int(np.loadtxt(output_path+'data/nstars', dtype=int))
 
-    mega_plot(output_path, 'average', field_name, title_name, nstars)
-    mega_plot(output_path, 'single', field_name, title_name, nstars)
+    from matplotlib.backends.backend_pdf import PdfPages
+    with PdfPages('{}data/mega_plot_{}.pdf'.format(output_path, field_name)) as pdf:
+        mega_plot(output_path, 'average', field_name, title_name, nstars, pdf)
+        mega_plot(output_path, 'single', field_name, title_name, nstars, pdf)
+        nightly_plots(output_path, 'single', field_name, title_name, nstars, pdf)
 
     # mjd_list, mag_list, std_list, mjd, nightly_avg_mag, nightly_std_mag = load_data(output_path)
     # if param['disable_plots_error_bars'] == 1:

@@ -20,6 +20,10 @@ def compute_final_magnitudes(cat_mag, ind):
     nightly_avg_mag = [np.average(mag[:, ind]) for mag in cat_mag]
     nightly_std_mag = [np.std(mag[:, ind]) for mag in cat_mag]
 
+    night_numbering = [[i+1]*len(mag[:, 0]) for (i, mag) in enumerate(cat_mag)]
+    night_numbering_list = []
+    [night_numbering_list.extend(n) for n in night_numbering]
+
     mag = [mag[:, ind] for mag in cat_mag]
     mag_list = []
     [mag_list.extend(m) for m in mag]
@@ -27,7 +31,7 @@ def compute_final_magnitudes(cat_mag, ind):
     frames_per_night = [len(mag[:, ind]) for mag in cat_mag]
     std_list = []
     [std_list.extend([nightly_std_mag[k]]*frames_per_night[k]) for k in xrange(len(frames_per_night))]
-    return mag_list, std_list, nightly_avg_mag, nightly_std_mag
+    return mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list
 
 
 def compute_final_date(cat_mjd):
@@ -43,9 +47,9 @@ def add_offset(cat_mag, cat_mjd, ind, offset, compute_offset):
         target_ins_mag = compute_averaged_mag(cat_mag, ind)
         offset = target_ins_mag-target_obs_mag
         cat_mag = apply_offset(cat_mag, offset)
-    mag_list, std_list, nightly_avg_mag, nightly_std_mag = compute_final_magnitudes(cat_mag, ind)
+    mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list = compute_final_magnitudes(cat_mag, ind)
     mjd, mjd_list = compute_final_date(cat_mjd)
-    return cat_mag, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list, offset
+    return cat_mag, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list, night_numbering_list, offset
 
 
 if __name__ == '__main__':

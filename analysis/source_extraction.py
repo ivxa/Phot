@@ -30,7 +30,7 @@ def make_image_list(i, fl):
 
 def call_sextractor(i, im, sl):
     cat_name = i+'/cat/'+im[:-6]+'.cat'
-    cmd = 'sex {} -c se.sex -CATALOG_NAME {} -SATUR_LEVEL {}'.format(i+'/cal/'+im, cat_name, sl)
+    cmd = 'sex {} -c {} -CATALOG_NAME {} -SATUR_LEVEL {}'.format(i+'/cal/'+im, param['sextractor_file'], cat_name, sl)
     if param['disable_analysis_extraction'] == 0:
         subprocess.call(cmd, shell=True)
     return cat_name

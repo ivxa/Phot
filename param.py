@@ -42,6 +42,7 @@ param = {
     'nstars_tolerance': 0.35,            # Minimum ratio with respect the maximum number of stars
     'astrometric_tolerance': 6,          # Astrometric tolerance when matching stars at different images (in arcsec)
     'max_nstars_missmatch_tolerance': 0.75, # Maximum ratio of bad matching between frames
+    'sextractor_file': 'se.sex',         # SExtractor input file    
     'scale_low': 3.87,                   # Minimum pixel scale of the CCD in arcsec/pix
     'scale_high': 3.89,                  # Maximum pixel scale of the CCD in arcsec/pix
     'output_path': '/home/gamma/garrofa/xparedes/photometry/test/mwc656/',               # The output path
