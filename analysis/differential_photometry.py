@@ -152,6 +152,9 @@ def parab_select(mag, std, sel, it):
 
 
 def ref_star_selection(cat_mag, ind, bool_sel, nsel, ra, dec, ra0, dec0,):
+    # We want 2 comparison stars
+    nsel += 2
+
     # First correction limiting by magnitude (mmin0 and mmax0)
     mag0 = cat_mag[0][0, :]
 
@@ -224,11 +227,26 @@ def ref_stars_info(ii, i, mag, ra, dec, ra0, dec0, w):
     np.savetxt(o, np.array([d.arcminute, ra[i], dec[i], w]), delimiter=' ')
 
 
+def comp_stars_info(ii, i, ra, dec, ra0, dec0):
+    tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
+    cat = SkyCoord(ra[i]*u.degree, dec[i]*u.degree)
+    d = tar.separation(cat)
+    o = param['output_path']+'data/S{}_comp_info'.format(str(ii))
+    np.savetxt(o, np.array([d.arcminute, ra[i], dec[i]]), delimiter=' ')
+
+
+def pick_comparison_stars(ind_ref, w):
+    return ind_ref[2:], w[2:], ind_ref[0], ind_ref[1] # ind_ref is sorted in increasing weight
+
+
 def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
     ind = find_target(cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
     bool_sel = np.ones(len(cat_ra[0][0, :]), dtype=bool)
     bool_sel = distance_selection(cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'], param['dmax'], bool_sel)
     ind_ref, w = ref_star_selection(cat_mag[:], ind, bool_sel, param['nsel'], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
+    ind_ref, w, ind_comp1, ind_comp2 = pick_comparison_stars(ind_ref, w)
+    comp_stars_info(1, ind_comp1, cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
+    comp_stars_info(2, ind_comp2, cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
     cat_mag_corrected_list = []
     ind_ref_list = []
     ind_comp_list = []
@@ -244,132 +262,9 @@ def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
         ref_stars_info(i, ind_excluded, cat_mag_corrected[0][:, :], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'], w[i])
     assert len(ind_ref_list) == len(ind_ref)
     assert len(cat_mag_corrected_list) == len(ind_ref)
-    return cat_mag_corrected_list, ind, ind_ref_list, ind_comp_list
+    return cat_mag_corrected_list, ind, ind_ref_list, ind_comp_list, ind_comp1, ind_comp2
 
 
 if __name__ == '__main__':
     # Testing
     print('STOP: Testing should be done from analysis.py')
-
-
-## PLOTTING AT THE NEW PLOTS.PY!!
-    #
-    # plot_self_corrected(cat_mag_corrected, cat_mjd, ind, ind_ref, o+'/MJD-'+param['field_name']+'-ref_stars_self_corrected.eps')
-    # plot_not_self_corrected(cat_mag[:], cat_mag_corrected[:], cat_mjd, ind, ind_ref, o, w)
-
-
-
-
-#
-# def extinction_correction_ref(cat_mag, ind, ir, ind_ref, w, testing=1):
-#     nref = len(ind_ref)
-#     ir_label = ind_ref[ir]
-#     ind_ref = np.delete(ind_ref, ir)
-#     mag0 = cat_mag[0][0, :]
-#     w = np.delete(w, ir)
-#
-#     cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref, w, 0)
-#     if testing == 1:
-#         nstars = len(cat_mag_corrected[0][0, :])
-#         avg_nightly_m = np.asarray([[np.average(mag[:, i]) for i in xrange(nstars)] for mag in cat_mag_corrected])
-#         std_m = np.asarray([np.std(avg_nightly_m[:, k]) for k in xrange(nstars)])
-#         print '\n  After removing only the {} reference star of {} labeled with {}:'.format(ir+1, nref, ir_label)
-#         print '  - Multi night target STD of the averaged mag is of {:.4f}'.format(std_m[ind])
-#         print '  - Target MEAN magnitude is of {:.3f}'.format(np.average(avg_nightly_m[:, ind]))
-#     return cat_mag_corrected
-#
-#
-# def plot_self_corrected(cat_mag_corrected, cat_mjd, ind, ind_ref, o):
-#     nstars = len(cat_mag_corrected[0][0, :])
-#     avg_nightly_mag = np.asarray([[np.average(mag[:, i]) for i in xrange(nstars)] for mag in cat_mag_corrected])
-#     std_nightly_mag = np.asarray([[np.std(mag[:, i]) for i in xrange(nstars)] for mag in cat_mag_corrected])
-#     avg_mjd = np.asarray([np.average(mjd) for mjd in cat_mjd])
-#
-#     plt.rcdefaults()
-#     f, ax = plt.subplots(len(ind_ref)+1, 1, figsize=(3, 3*(len(ind_ref)+1)), sharex=True)
-#     # f.subplots_adjust(hspace=1)
-#     ax[0].set_title('Target'.format(i))
-#     ax[0].errorbar(avg_mjd, avg_nightly_mag[:, ind], yerr=std_nightly_mag[:, ind], fmt='k.', markersize=8,
-#                    elinewidth=1.0, capsize=0)
-#     ax[0].set_xlabel(r'MJD')
-#     ax[0].set_ylabel(r'$m$ (mag)')
-#     ax[0].set_xlim((min(avg_mjd)*(1-0.00005), max(avg_mjd)*(1+0.00005)))
-#     ax[0].set_ylim((min(avg_nightly_mag[:, ind])*(1-0.005), max(avg_nightly_mag[:, ind])*(1+0.005)))
-#     ax[0].set_ylim(ax[0].get_ylim()[::-1])
-#     # from matplotlib.ticker import MultipleLocator
-#     # ax[0].xaxis.set_minor_locator(MultipleLocator(0.5))
-#     for (i, indi) in enumerate(ind_ref):
-#         ax[i+1].set_title('Comparison star {} ({})'.format(i+1, indi))
-#         ax[i+1].errorbar(avg_mjd, avg_nightly_mag[:, indi], yerr=std_nightly_mag[:, indi], fmt='k.', markersize=8,
-#                          elinewidth=1.0, capsize=0)
-#         ax[i+1].set_ylabel(r'$m$ (mag)')
-#         ax[i+1].set_ylim((min(avg_nightly_mag[:, indi])*(1-0.005), max(avg_nightly_mag[:, indi])*(1+0.005)))
-#         ax[i+1].set_ylim(ax[i+1].get_ylim()[::-1])
-#     f.savefig(o, bbox_inches='tight', pad_inches=0.05)
-#     plt.close(f)
-#
-#
-# def plot_not_self_corrected(cat_mag, cat_mag_corrected, cat_mjd, ind, ind_ref, o, w):
-#
-#     def set_figure():
-#         plt.rcdefaults()
-#         return plt.subplots(len(ind_ref[0:param['nsel_plots']])+1, 1,
-#                             figsize=(3, 3*(len(ind_ref[0:param['nsel_plots']])+1)), sharex=True)
-#
-#     def plot(ii, iind, title):
-#         ax[ii].set_title(title)
-#         if param['field_name'] == 'lsi61303':
-#             std = np.std(y[:, iind])
-#             avg_set1 = np.average([yi for i, yi in enumerate(y[:, iind]) if x[i] < 56400])
-#             avg_set2 = np.average([yi for i, yi in enumerate(y[:, iind]) if 56400 <= x[i] < 56800])
-#             avg_set3 = np.average([yi for i, yi in enumerate(y[:, iind]) if 56800 < x[i]])
-#             ax[ii].errorbar(x, y[:, iind], yerr=dy[:, iind], fmt='k.', markersize=8, elinewidth=1.0, capsize=0,
-#                             label='std = {:.3f}; m1 = {:.3f}, m2 = {:.3f}, m3 = {:.3f}'.format(std, avg_set1, avg_set2, avg_set3))
-#             ax[ii].legend()
-#         else:
-#             ax[ii].errorbar(x, y[:, iind], yerr=dy[:, iind], fmt='k.', markersize=8, elinewidth=1.0, capsize=0)
-#         ax[ii].set_xlabel(r'MJD')
-#         ax[ii].set_ylabel(r'$m$ (mag)')
-#         ax[ii].set_xlim((min(x)*(1-0.00005), max(x)*(1+0.00005)))
-#         ax[ii].set_ylim((min(y[:, iind])*(1-0.005), max(y[:, iind])*(1+0.005)))
-#         ax[ii].set_ylim(ax[ii].get_ylim()[::-1])
-#
-#     def compute_x_y_dy():
-#         nstars = len(cat_mag_corrected[0][0, :])
-#         avg_mjd = np.asarray([np.average(mjd) for mjd in cat_mjd])
-#         avg_nightly_mag = np.asarray([[np.average(mag[:, i]) for i in xrange(nstars)] for mag in cat_mag_corrected])
-#         std_nightly_mag = np.asarray([[np.std(mag[:, i]) for i in xrange(nstars)] for mag in cat_mag_corrected])
-#         return avg_mjd, avg_nightly_mag, std_nightly_mag
-#
-#     x, y, dy = compute_x_y_dy()
-#     f, ax = set_figure()
-#     plot(0, ind, 'Target')
-#     for ir in xrange(len(ind_ref[0:param['nsel_plots']])):
-#         cat_mag_corrected = extinction_correction_ref(cat_mag[:], ind, ir, np.copy(ind_ref), w)
-#         x, y, dy = compute_x_y_dy()
-#         plot(ir+1, ind_ref[ir], 'Comparison star {} ({})'.format(ir+1, ind_ref[ir]))
-#     f.savefig(o+'/MJD-'+param['field_name'] + '-ref_stars_not_self_corrected.eps', bbox_inches='tight', pad_inches=0.05)
-#     plt.close(f)
-
-
-    #
-    # # Now we have the ind_ref list of comparison stars
-    #
-    # fig = plt.figure()
-    # fig.clf()
-    # ax = fig.add_subplot(1,1,1)
-    # ax.errorbar(AVG_m[np.where(sel == False)], std_m_aux[np.where(sel == False)], fmt='or', mec='r', markersize=4)
-    # ax.errorbar(AVG_m[np.where(sel == True)], std_m[np.where(sel == True)], fmt='ok', mec='k', markersize=4)
-    # ax.errorbar(AVG_m[ind_ref], std_m[ind_ref],fmt='og', mec='g', markersize=4, linewidth=0,)
-    # ax.errorbar(AVG_m[ind], std_target, fmt='*b', mec='b', markersize=8, linewidth=0,)
-    # ax.set_xlabel(r'$\overline{m}$ (mag)')
-    # ax.set_ylabel(r'$\sigma$')
-    # ax.set_yscale('log')
-    # ylim1max = std_m_aux[std_m_aux<99999].max()
-    # ylim2max = std_m[std_m<99999].max()
-    # ylim1min = std_m_aux.min()
-    # ylim2min = std_m.min()
-    # ax.set_ylim((min(ylim1min, ylim2min), max(ylim1max,ylim2max)))
-    # fig.savefig(param['output_path'] + '/RMSvsMAG/RMSplot.eps', bbox_inches='tight', pad_inches=0.05)
-    # plt.close(fig)
-    # return cat_mag_corrected, ind_ref, 1./std_m[ind_ref]**2.
