@@ -33,17 +33,17 @@ def auto_crop_img(filename):
 
 
 def load_data(i, fname):
-    mjd_list, mag_list, std_list = np.loadtxt(i + 'data/S{}_MJD_MAG_ERR-{}-all_frames.dat'
+    mjd_list, mag_list, std_list, night_list = np.loadtxt(i + 'data/S{}_MJD_MAG_ERR-{}-all_frames.dat'
                                               .format(fname, param['field_name']), unpack=True, delimiter=' ')
-    mjd, nightly_avg_mag, nightly_std_mag = np.loadtxt(i + 'data/S{}_MJD_MAG_ERR-{}-nightly_average.dat'
+    mjd, nightly_avg_mag, nightly_std_mag, _night_list = np.loadtxt(i + 'data/S{}_MJD_MAG_ERR-{}-nightly_average.dat'
                                                        .format(fname, param['field_name']), unpack=True, delimiter=' ')
-    return mjd_list, mag_list, std_list, mjd, nightly_avg_mag, nightly_std_mag
+    return mjd_list, mag_list, std_list, mjd, nightly_avg_mag, nightly_std_mag, night_list
 
 
 def nightly_plots(o, suff, fn, tn, nstars, pdf):
 
     def tick_function(tick_list):
-        return ['{:.2f}'.format((Time(t, format='mjd', scale='utc').datetime-Time(tick_list[0], format='mjd', scale='utc').datetime).total_seconds()/60.) for t in tick_list]
+        return ['{:.0f}'.format((Time(t, format='mjd', scale='utc').datetime-Time(tick_list[0], format='mjd', scale='utc').datetime).total_seconds()/60.) for t in tick_list]
 
     _mjd_list, _mag_list, _std_list, _night_list = np.loadtxt(o + 'data/S0_target_MJD_MAG_ERR-{}-nightly_average.dat'.format(param['field_name']), unpack=True, delimiter=' ')
     mjd_list, mag_list, std_list, night_list = np.loadtxt(o + 'data/S0_target_MJD_MAG_ERR-{}-all_frames.dat'.format(param['field_name']), unpack=True, delimiter=' ')
@@ -61,7 +61,7 @@ def nightly_plots(o, suff, fn, tn, nstars, pdf):
         ax[n, 0].errorbar(mjd_list[night_list == n1], mag_list[night_list == n1], yerr=std_list[night_list == n1], fmt='b.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='{}'.format(tn))
         ax[n, 0].set_ylabel('$m$ [mag]')
         ax[n, 0].set_xlabel('MJD')
-        ax[n, 0].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[n, 0].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[n, 0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[n, 0].set_title('Night {} of {}\nStart: {}\nEnd: {}'.format(n1, nnights, Time(mjd_list[night_list == n1][0], format='mjd', scale='utc' ).datetime, Time(mjd_list[night_list == n1][-1], format='mjd', scale='utc' ).datetime), y=1.2)
         axtop = ax[n, 0].twiny()
@@ -77,7 +77,7 @@ def nightly_plots(o, suff, fn, tn, nstars, pdf):
         ax[n, 1].errorbar(mjd_list1[night_list1 == n1], mag_list1[night_list1 == n1], yerr=std_list1[night_list1 == n1], fmt='g.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='Comp. star 1')
         ax[n, 1].set_ylabel('$m$ [mag]')
         ax[n, 1].set_xlabel('MJD')
-        ax[n, 1].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[n, 1].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[n, 1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         axtop = ax[n, 1].twiny()
         axtop.set_xticks(ax[n, 1].get_xticks())
@@ -92,7 +92,7 @@ def nightly_plots(o, suff, fn, tn, nstars, pdf):
         ax[n, 2].errorbar(mjd_list2[night_list2 == n1], mag_list2[night_list2 == n1], yerr=std_list2[night_list2 == n1], fmt='gs', markersize=5, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='Comp. star 2')
         ax[n, 2].set_ylabel('$m$ [mag]')
         ax[n, 2].set_xlabel('MJD')
-        ax[n, 2].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[n, 2].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[n, 2].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         axtop = ax[n, 2].twiny()
         axtop.set_xticks(ax[n, 2].get_xticks())
@@ -109,7 +109,7 @@ def nightly_plots(o, suff, fn, tn, nstars, pdf):
         ax[n, 3].errorbar(mjd_list1[night_list1 == n1], mag_list1[night_list1 == n1]-offset_value, yerr=std_list1[night_list1 == n1], fmt='g.', markersize=7, alpha=0.5, elinewidth=1.0, capsize=0, label='Comp. star 1 (offset)'.format(tn))
         ax[n, 3].set_ylabel('$m$ [mag]')
         ax[n, 3].set_xlabel('MJD')
-        ax[n, 3].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[n, 3].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[n, 3].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         axtop = ax[n, 3].twiny()
         axtop.set_xticks(ax[n, 3].get_xticks())
@@ -216,7 +216,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
         ax[0, j].set_xlim((0,2))
         ax[0, 0].set_ylabel('$m$ [mag]')
         ax[0, j].set_xlabel('PHASE (P = {:.3f} d)'.format(param['period']))
-        ax[0, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[0, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[0, j].xaxis.set_minor_locator(MultipleLocator(0.1))
         ax[0, j].set_ylim(ax[0, j].get_ylim()[::-1])
         ax[0, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
@@ -225,7 +225,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
         ax[1, j].errorbar(mjd_t, nightly_avg_mag_t, fmt='b.', markersize=7, alpha=alpha_plots2, elinewidth=1.0, capsize=0, label='{}'.format(tn))
         ax[1, 0].set_ylabel('$m$ [mag]')
         ax[1, j].set_xlabel('MJD')
-        ax[1, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[1, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[1, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         axtop = ax[1, j].twiny()
         axtop.set_xticks(ax[1,j].get_xticks())
@@ -241,7 +241,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
         ax[2, j].set_xlim((0,2))
         ax[2, 0].set_ylabel('$m$ [mag]')
         ax[2, j].set_xlabel('PHASE (P = {:.3f} d)'.format(param['period']))
-        ax[2, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[2, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[2, j].xaxis.set_minor_locator(MultipleLocator(0.1))
         ax[2, j].set_ylim(ax[2, j].get_ylim()[::-1])
         ax[2, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
@@ -250,7 +250,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
         ax[3, j].errorbar(mjd_t, nightly_avg_mag_t, yerr=nightly_std_mag_t, fmt='b.', markersize=7, alpha=alpha_plots2, elinewidth=1.0, capsize=0, label='{}'.format(tn))
         ax[3, 0].set_ylabel('$m$ [mag]')
         ax[3, j].set_xlabel('MJD')
-        ax[3, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[3, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[3, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         axtop = ax[3, j].twiny()
         axtop.set_xticks(ax[3,j].get_xticks())
@@ -264,7 +264,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
         ax[4, j].set_title('{} LC of comp. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(1), compar1_mean, compar1_std1, compar1_std2, ra1, dec1, tn, d1))
         ax[4, 0].set_ylabel('$m$ [mag]')
         ax[4, j].set_xlabel('MJD')
-        ax[4, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[4, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[4, j].set_ylim(ax[4, j].get_ylim()[::-1])
         ax[4, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[4, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
@@ -274,7 +274,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
         ax[5, j].set_title('{} LC of comp. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(2), compar2_mean, compar2_std1, compar2_std2, ra2, dec2, tn, d2))
         ax[5, 0].set_ylabel('$m$ [mag]')
         ax[5, j].set_xlabel('MJD')
-        ax[5, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[5, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[5, j].set_ylim(ax[5, j].get_ylim()[::-1])
         ax[5,j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[5, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
@@ -287,7 +287,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
         ax[6, j].set_title('{} LCs of {} and comp. star {}'.format(tname, tn, 1))
         ax[6, 0].set_ylabel('$m$ [mag]')
         ax[6, j].set_xlabel('MJD')
-        ax[6, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[6, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[6, j].set_ylim(ax[6, j].get_ylim()[::-1])
         ax[6,j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[6, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
@@ -297,7 +297,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
         ax[7, j].set_title('{} LC of the excluded ref. star {}\nMean magnitude: {:.2f}\nStd of the nightly mean: {:.3f}\nMean of the nightly std: {:.3f}\nCorrection weight (when included): {:.2e}\nRA {:.3f} deg, DEC {:.3f} deg\nDistance with respect to {}: {:.2f} arcmin'.format(tname, str(j), compar_mean, compar_std1, compar_std2, w, ra, dec, tn, d))
         ax[7, 0].set_ylabel('$m$ [mag]')
         ax[7, j].set_xlabel('MJD')
-        ax[7, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        # ax[7, j].yaxis.set_minor_locator(MultipleLocator(0.005))
         ax[7, j].set_ylim(ax[7, j].get_ylim()[::-1])
         ax[7, j].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
         ax[7, j].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
