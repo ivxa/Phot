@@ -3,8 +3,3 @@
 
 
 from plots import make_plots
-try:
-    from plots_lsi61303 import make_plots_lsi61303
-except:
-    pass
-

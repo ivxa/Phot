@@ -25,10 +25,7 @@ def main():
     if param['disable_plots'] == 0:
         print('\n----------------------------------------')
         print('\nPLOTTING:\n')
-        if param['field_name'] == 'lsi61303':
-            plots.make_plots_lsi61303()
-        else:
-            plots.make_plots()
+        plots.make_plots()
         print('Plotting successfully completed.')
 
 

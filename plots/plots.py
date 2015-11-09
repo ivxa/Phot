@@ -5,6 +5,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib.ticker import AutoMinorLocator
 from astropy.time import Time
 import itertools
 import sys
@@ -51,79 +52,85 @@ def nightly_plots(o, suff, fn, tn, nstars, pdf):
     mjd_list2, mag_list2, std_list2, night_list2 = np.loadtxt(o + 'data/S0_compa2_MJD_MAG_ERR-{}-all_frames.dat'.format(param['field_name']), unpack=True, delimiter=' ')
     nnights = int(max(_night_list))
 
-    plt.close('all')
-    fig, ax = plt.subplots(nnights, 4, sharex=False, figsize=(4*4.5, nnights*4)) # 1.5 l'he baixat
+    nights_per_page = 25.
+    npages = np.int(np.ceil(nnights/np.float(nights_per_page)))
+    for page in range(npages):
+        plt.close('all')
+        # fig, ax = plt.subplots(nnights, 4, sharex=False, figsize=(4*4.5, nnights*4))
+        fig, ax = plt.subplots(int(nights_per_page), 4, sharex=False, figsize=(4*4.5, nights_per_page*4))
 
-    alpha_plots = 0.8
-    for n in _night_list:
-        n = int(n)-1
-        n1 = n+1
-        ax[n, 0].errorbar(mjd_list[night_list == n1], mag_list[night_list == n1], yerr=std_list[night_list == n1], fmt='b.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='{}'.format(tn))
-        ax[n, 0].set_ylabel('$m$ [mag]')
-        ax[n, 0].set_xlabel('MJD')
-        # ax[n, 0].yaxis.set_minor_locator(MultipleLocator(0.005))
-        ax[n, 0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
-        ax[n, 0].set_title('Night {} of {}\nStart: {}\nEnd: {}'.format(n1, nnights, Time(mjd_list[night_list == n1][0], format='mjd', scale='utc' ).datetime, Time(mjd_list[night_list == n1][-1], format='mjd', scale='utc' ).datetime), y=1.2)
-        axtop = ax[n, 0].twiny()
-        axtop.set_xticks(ax[n, 0].get_xticks())
-        axtop.set_xbound(ax[n, 0].get_xbound())
-        axtop.set_xticklabels(tick_function(ax[n, 0].get_xticks()))#, rotation=70, ha='left')
-        axtop.set_xlabel('Elapsed time [minutes]')
-        ax[n, 0].set_ylim(ax[n, 0].get_ylim()[::-1])
-        ax[n, 0].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
-        ax[n, 0].grid()
-        ax[n, 0].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+        alpha_plots = 0.8
+        n0 = -1
+        for n in _night_list[int(page)*int(nights_per_page):int(page)*int(nights_per_page)+int(nights_per_page)]:
+            n = int(n)-1
+            n1 = n+1
+            n0 += 1
+            ax[n0, 0].errorbar(mjd_list[night_list == n1], mag_list[night_list == n1], yerr=std_list[night_list == n1], fmt='b.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='{}'.format(tn))
+            ax[n0, 0].set_ylabel('$m$ [mag]')
+            ax[n0, 0].set_xlabel('MJD')
+            # ax[n0, 0].yaxis.set_minor_locator(MultipleLocator(0.005))
+            ax[n0, 0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+            ax[n0, 0].set_title('Night {} of {}\nStart: {}\nEnd: {}'.format(n1, nnights, Time(mjd_list[night_list == n1][0], format='mjd', scale='utc' ).datetime, Time(mjd_list[night_list == n1][-1], format='mjd', scale='utc' ).datetime), y=1.2)
+            axtop = ax[n0, 0].twiny()
+            axtop.set_xticks(ax[n0, 0].get_xticks())
+            axtop.set_xbound(ax[n0, 0].get_xbound())
+            axtop.set_xticklabels(tick_function(ax[n0, 0].get_xticks()))#, rotation=70, ha='left')
+            axtop.set_xlabel('Elapsed time [minutes]')
+            ax[n0, 0].set_ylim(ax[n0, 0].get_ylim()[::-1])
+            ax[n0, 0].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+            ax[n0, 0].grid()
+            ax[n0, 0].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
 
-        ax[n, 1].errorbar(mjd_list1[night_list1 == n1], mag_list1[night_list1 == n1], yerr=std_list1[night_list1 == n1], fmt='g.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='Comp. star 1')
-        ax[n, 1].set_ylabel('$m$ [mag]')
-        ax[n, 1].set_xlabel('MJD')
-        # ax[n, 1].yaxis.set_minor_locator(MultipleLocator(0.005))
-        ax[n, 1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
-        axtop = ax[n, 1].twiny()
-        axtop.set_xticks(ax[n, 1].get_xticks())
-        axtop.set_xbound(ax[n, 1].get_xbound())
-        axtop.set_xticklabels(tick_function(ax[n, 1].get_xticks()))#, rotation=70, ha='left')
-        axtop.set_xlabel('Elapsed time [minutes]')
-        ax[n, 1].set_ylim(ax[n, 1].get_ylim()[::-1])
-        ax[n, 1].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
-        ax[n, 1].grid()
-        ax[n, 1].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+            ax[n0, 1].errorbar(mjd_list1[night_list1 == n1], mag_list1[night_list1 == n1], yerr=std_list1[night_list1 == n1], fmt='g.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='Comp. star 1')
+            ax[n0, 1].set_ylabel('$m$ [mag]')
+            ax[n0, 1].set_xlabel('MJD')
+            # ax[n0, 1].yaxis.set_minor_locator(MultipleLocator(0.005))
+            ax[n0, 1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+            axtop = ax[n0, 1].twiny()
+            axtop.set_xticks(ax[n0, 1].get_xticks())
+            axtop.set_xbound(ax[n0, 1].get_xbound())
+            axtop.set_xticklabels(tick_function(ax[n0, 1].get_xticks()))#, rotation=70, ha='left')
+            axtop.set_xlabel('Elapsed time [minutes]')
+            ax[n0, 1].set_ylim(ax[n0, 1].get_ylim()[::-1])
+            ax[n0, 1].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+            ax[n0, 1].grid()
+            ax[n0, 1].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
 
-        ax[n, 2].errorbar(mjd_list2[night_list2 == n1], mag_list2[night_list2 == n1], yerr=std_list2[night_list2 == n1], fmt='gs', markersize=5, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='Comp. star 2')
-        ax[n, 2].set_ylabel('$m$ [mag]')
-        ax[n, 2].set_xlabel('MJD')
-        # ax[n, 2].yaxis.set_minor_locator(MultipleLocator(0.005))
-        ax[n, 2].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
-        axtop = ax[n, 2].twiny()
-        axtop.set_xticks(ax[n, 2].get_xticks())
-        axtop.set_xbound(ax[n, 2].get_xbound())
-        axtop.set_xticklabels(tick_function(ax[n, 2].get_xticks()))#, rotation=70, ha='left')
-        axtop.set_xlabel('Elapsed time [minutes]')
-        ax[n, 2].set_ylim(ax[n, 2].get_ylim()[::-1])
-        ax[n, 2].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
-        ax[n, 2].grid()
-        ax[n, 2].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+            ax[n0, 2].errorbar(mjd_list2[night_list2 == n1], mag_list2[night_list2 == n1], yerr=std_list2[night_list2 == n1], fmt='gs', markersize=5, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='Comp. star 2')
+            ax[n0, 2].set_ylabel('$m$ [mag]')
+            ax[n0, 2].set_xlabel('MJD')
+            # ax[n0, 2].yaxis.set_minor_locator(MultipleLocator(0.005))
+            ax[n0, 2].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+            axtop = ax[n0, 2].twiny()
+            axtop.set_xticks(ax[n0, 2].get_xticks())
+            axtop.set_xbound(ax[n0, 2].get_xbound())
+            axtop.set_xticklabels(tick_function(ax[n0, 2].get_xticks()))#, rotation=70, ha='left')
+            axtop.set_xlabel('Elapsed time [minutes]')
+            ax[n0, 2].set_ylim(ax[n0, 2].get_ylim()[::-1])
+            ax[n0, 2].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+            ax[n0, 2].grid()
+            ax[n0, 2].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
 
-        offset_value = np.average(mag_list1[night_list1 == n1])-np.average(mag_list[night_list == n1])
-        ax[n, 3].errorbar(mjd_list[night_list == n1], mag_list[night_list == n1], yerr=std_list[night_list == n1], fmt='b.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='{}'.format(tn))
-        ax[n, 3].errorbar(mjd_list1[night_list1 == n1], mag_list1[night_list1 == n1]-offset_value, yerr=std_list1[night_list1 == n1], fmt='g.', markersize=7, alpha=0.5, elinewidth=1.0, capsize=0, label='Comp. star 1 (offset)'.format(tn))
-        ax[n, 3].set_ylabel('$m$ [mag]')
-        ax[n, 3].set_xlabel('MJD')
-        # ax[n, 3].yaxis.set_minor_locator(MultipleLocator(0.005))
-        ax[n, 3].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
-        axtop = ax[n, 3].twiny()
-        axtop.set_xticks(ax[n, 3].get_xticks())
-        axtop.set_xbound(ax[n, 3].get_xbound())
-        axtop.set_xticklabels(tick_function(ax[n, 3].get_xticks()))#, rotation=70, ha='left')
-        axtop.set_xlabel('Elapsed time [minutes]')
-        ax[n, 3].set_ylim(ax[n, 3].get_ylim()[::-1])
-        ax[n, 3].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
-        ax[n, 3].grid()
-        # ax[n, 3].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1, bbox_to_anchor=(0., 1.3, 1., .102))
+            offset_value = np.average(mag_list1[night_list1 == n1])-np.average(mag_list[night_list == n1])
+            ax[n0, 3].errorbar(mjd_list[night_list == n1], mag_list[night_list == n1], yerr=std_list[night_list == n1], fmt='b.', markersize=7, alpha=alpha_plots, elinewidth=1.0, capsize=0, label='{}'.format(tn))
+            ax[n0, 3].errorbar(mjd_list1[night_list1 == n1], mag_list1[night_list1 == n1]-offset_value, yerr=std_list1[night_list1 == n1], fmt='g.', markersize=7, alpha=0.5, elinewidth=1.0, capsize=0, label='Comp. star 1 (offset)'.format(tn))
+            ax[n0, 3].set_ylabel('$m$ [mag]')
+            ax[n0, 3].set_xlabel('MJD')
+            # ax[n0, 3].yaxis.set_minor_locator(MultipleLocator(0.005))
+            ax[n0, 3].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+            axtop = ax[n0, 3].twiny()
+            axtop.set_xticks(ax[n0, 3].get_xticks())
+            axtop.set_xbound(ax[n0, 3].get_xbound())
+            axtop.set_xticklabels(tick_function(ax[n0, 3].get_xticks()))#, rotation=70, ha='left')
+            axtop.set_xlabel('Elapsed time [minutes]')
+            ax[n0, 3].set_ylim(ax[n0, 3].get_ylim()[::-1])
+            ax[n0, 3].xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=True))
+            ax[n0, 3].grid()
+            # ax[n0, 3].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1, bbox_to_anchor=(0., 1.3, 1., .102))
 
-    plt.tight_layout()
-    pdf.savefig()
-    plt.close()
+        plt.tight_layout()
+        pdf.savefig()
+        plt.close('all')
 
 
 def mega_plot(o, suff, fn, tn, nstars, pdf):
@@ -336,28 +343,54 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
 
     plt.tight_layout()
     pdf.savefig()
-    plt.close()
+    plt.close('all')
     # fig.savefig(fname, bbox_inches='tight', pad_inches=0.05)
     # auto_crop_img(fname)
 
 
-def plot_mjd(x, y, yerr, o):
+def plot_mjd(x, y, yerr, x1, y1, yerr1, o, pdf):
+    def tick_function(tick_list):
+        return [Time(t, format='mjd', scale='utc' ).datetime.date() for t in tick_list]
+
     ymin = min(np.asarray(y)-np.asarray(yerr))
     ymax = max(np.asarray(y)+np.asarray(yerr))
 
-    plt.rcdefaults()
-    f, ax = plt.subplots(1, 1)
-    ax.errorbar(x, y, yerr=yerr, fmt='k.', markersize=8, elinewidth=1.0, capsize=0)
-    ax.set_xlabel(r'MJD')
-    ax.set_ylabel(r'$m$ (mag)')
-    ax.set_xlim((min(x)-6, max(x)+6))
-    ax.set_ylim((ymin*(1-0.001), ymax*(1+0.001)))
-    ax.set_ylim(ax.get_ylim()[::-1])
-    # from matplotlib.ticker import MultipleLocator
-    # ax[0].xaxis.set_minor_locator(MultipleLocator(0.5))
-    f.savefig(o, bbox_inches='tight', pad_inches=0.05)
-    #f.show()
-    plt.close(f)
+    plt.close('all')
+    f, ax = plt.subplots(1, 2, figsize=(2*7,1*5.5))
+    ax[0].errorbar(x, y, yerr=yerr, fmt='k.', markersize=8, alpha=0.7, elinewidth=1.0, capsize=0)
+    ax[0].set_xlabel(r'MJD')
+    ax[0].set_ylabel(r'$m$ [mag]')
+    ax[0].set_xlim((min(x)-6, max(x)+6))
+    ax[0].set_ylim((ymin*(1-0.001), ymax*(1+0.001)))
+    ax[0].yaxis.set_minor_locator(AutoMinorLocator())
+    ax[0].grid()
+    ax[0].set_ylim(ax[0].get_ylim()[::-1])
+    ax[0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+    axtop = ax[0].twiny()
+    axtop.set_xticks(ax[0].get_xticks())
+    axtop.set_xbound(ax[0].get_xbound())
+    axtop.set_xticklabels(tick_function(ax[0].get_xticks()), rotation=70, ha='left')
+
+
+    ax[1].errorbar(x1, y1, yerr=yerr1, fmt='k.', markersize=8, alpha=0.7, elinewidth=1.0, capsize=0, label='Comp. star')
+    ax[1].set_xlabel(r'MJD')
+    ax[1].set_ylabel(r'$m$ [mag]')
+    ax[1].set_xlim((min(x)-6, max(x)+6))
+    ax[1].yaxis.set_minor_locator(AutoMinorLocator())
+    ax[1].grid()
+    ax[1].set_ylim(ax[1].get_ylim()[::-1])
+    ax[1].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+    ax[1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+    axtop = ax[1].twiny()
+    axtop.set_xticks(ax[1].get_xticks())
+    axtop.set_xbound(ax[1].get_xbound())
+    axtop.set_xticklabels(tick_function(ax[1].get_xticks()), rotation=70, ha='left')
+
+
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
+    # f.savefig(o, bbox_inches='tight', pad_inches=0.05)
     # auto_crop_img(o)
 
 
@@ -377,23 +410,44 @@ def compute_orbital_phase_mid(mjd, mag, merr):
     return phase, mag, merr
 
 
-def plot_phase(i, o):
+def plot_phase(i, i1, o, pdf, plot_errors=True):
     x, y, yerr = i
+    x1, y1, yerr1 = i1
+    if not plot_errors:
+        yerr=yerr*0.
+        yerr1=yerr*0.
     ymin = min(np.asarray(y)-np.asarray(yerr))
     ymax = max(np.asarray(y)+np.asarray(yerr))
 
-    plt.rcdefaults()
-    f, ax = plt.subplots(1, 1)
-    ax.errorbar(x, y, yerr=yerr, fmt='k.', markersize=8, elinewidth=1.0, capsize=0)
-    ax.set_xlabel(r'MJD')
-    ax.set_ylabel(r'$m$ (mag)')
-    ax.set_xlim(0, 2)
-    ax.set_ylim((ymin*(1-0.001), ymax*(1+0.001)))
-    ax.set_ylim(ax.get_ylim()[::-1])
-    # from matplotlib.ticker import MultipleLocator
-    # ax[0].xaxis.set_minor_locator(MultipleLocator(0.5))
-    f.savefig(o, bbox_inches='tight', pad_inches=0.05)
-    plt.close(f)
+    plt.close('all')
+    f, ax = plt.subplots(1, 2, figsize=(2*7,1*5))
+
+    ax[0].errorbar(x, y, yerr=yerr, fmt='k.', markersize=8, alpha=0.8, elinewidth=1.0, capsize=0)
+    ax[0].set_xlabel(r'PHASE')
+    ax[0].set_ylabel(r'$m$ [mag]')
+    ax[0].set_xlim(0, 2)
+    ax[0].xaxis.set_minor_locator(MultipleLocator(0.1))
+    ax[0].yaxis.set_minor_locator(AutoMinorLocator())
+    ax[0].grid()
+    ax[0].set_ylim((ymin*(1-0.001), ymax*(1+0.001)))
+    ax[0].set_ylim(ax[0].get_ylim()[::-1])
+    ax[0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+
+    ax[1].errorbar(x1, y1, yerr=yerr1, fmt='k.', markersize=8, alpha=0.8, elinewidth=1.0, capsize=0, label='Comp. star 1')
+    ax[1].set_xlabel(r'PHASE')
+    ax[1].set_ylabel(r'$m$ [mag]')
+    ax[1].set_xlim(0, 2)
+    ax[1].xaxis.set_minor_locator(MultipleLocator(0.1))
+    ax[1].yaxis.set_minor_locator(AutoMinorLocator())
+    ax[1].grid()
+    ax[1].set_ylim(ax[1].get_ylim()[::-1])
+    ax[1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+    ax[1].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
+    # f.savefig(o, bbox_inches='tight', pad_inches=0.05)
     # auto_crop_img(o)
 
 
@@ -418,56 +472,193 @@ def make_cycles(mjd, mag, merr, testing=0):
     return mjd_cycles, mag_cycles, merr_cycles
 
 
-def plot_mjd_cycles(x_cyc, y_cyc, yerr_cyc, o):
+def plot_mjd_cycles(x_cyc, y_cyc, yerr_cyc, x_cyc1, y_cyc1, yerr_cyc1, o, pdf, plot_errors=True):
+    def tick_function(tick_list):
+        return [Time(t, format='mjd', scale='utc' ).datetime.date() for t in tick_list]
+
     xmin = min([min(x) for x in x_cyc])
     xmax = max([max(x) for x in x_cyc])
     ymin = min([min(np.asarray(y)-np.asarray(dy)) for (y, dy) in zip(y_cyc, yerr_cyc)])
     ymax = max([max(np.asarray(y)+np.asarray(dy)) for (y, dy) in zip(y_cyc, yerr_cyc)])
 
-    plt.rcdefaults()
-    f, ax = plt.subplots(1, 1)
+    plt.close('all')
+    f, ax = plt.subplots(1, 2, figsize=(2*7,1*5.5))
+
     colormap = eval('plt.cm.'+param['colormap_cycles'])
     col_range = param['colormap_cycles_range']
-    ax.set_color_cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
+    ax[0].set_color_cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
     marker = itertools.cycle(('^', 's', 'o', 'p', 'v', '<', 'H', '*', 'h', '<', '>', 'D', 'd', '4'))
     for (x, y, yerr) in zip(x_cyc, y_cyc, yerr_cyc):
-        ax.errorbar(x, y, yerr=yerr, fmt='.', marker=marker.next(), markersize=8, elinewidth=1.0, capsize=0,
-                    markeredgewidth=0.00)
-    ax.set_xlabel(r'MJD')
-    ax.set_ylabel(r'$m$ (mag)')
-    ax.set_xlim(xmin-6, xmax+6)
-    ax.set_ylim(ymin*(1-0.001), ymax*(1+0.001))
-    ax.set_ylim(ax.get_ylim()[::-1])
-    ax.yaxis.set_minor_locator(MultipleLocator(0.01))
-    f.savefig(o, bbox_inches='tight', pad_inches=0.05)
-    plt.close(f)
+        if not plot_errors:
+            yerr=np.array(yerr)*0.
+        ax[0].errorbar(x, y, yerr=yerr, fmt='.', alpha=0.8, marker=marker.next(), markersize=8, elinewidth=1.0, capsize=0,
+                       markeredgewidth=0.00)
+    ax[0].set_xlabel(r'MJD')
+    ax[0].set_ylabel(r'$m$ [mag]')
+    ax[0].set_xlim(xmin-6, xmax+6)
+    ax[0].set_ylim(ymin*(1-0.001), ymax*(1+0.001))
+    ax[0].set_ylim(ax[0].get_ylim()[::-1])
+    ax[0].yaxis.set_minor_locator(AutoMinorLocator())
+    ax[0].grid()
+    ax[0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+    axtop = ax[0].twiny()
+    axtop.set_xticks(ax[0].get_xticks())
+    axtop.set_xbound(ax[0].get_xbound())
+    axtop.set_xticklabels(tick_function(ax[0].get_xticks()), rotation=70, ha='left')
+
+    ax[1].set_color_cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
+    marker = itertools.cycle(('^', 's', 'o', 'p', 'v', '<', 'H', '*', 'h', '<', '>', 'D', 'd', '4'))
+    k = True
+    for (x, y, yerr) in zip(x_cyc1, y_cyc1, yerr_cyc1):
+        if not plot_errors:
+            yerr=np.array(yerr)*0.
+        if k:
+            ax[1].errorbar(x, y, yerr=yerr, fmt='.', alpha=0.8, marker=marker.next(), markersize=8, elinewidth=1.0, capsize=0,
+                           markeredgewidth=0.00, label='Comp. star 1')
+            k = False
+        else:
+            ax[1].errorbar(x, y, yerr=yerr, fmt='.', alpha=0.8, marker=marker.next(), markersize=8, elinewidth=1.0, capsize=0,
+                           markeredgewidth=0.00)
+    ax[1].set_xlabel(r'MJD')
+    ax[1].set_ylabel(r'$m$ [mag]')
+    ax[1].set_xlim(xmin-6, xmax+6)
+    ax[1].set_ylim(ax[1].get_ylim()[::-1])
+    ax[1].yaxis.set_minor_locator(AutoMinorLocator())
+    ax[1].grid()
+    ax[1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+    ax[1].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+    axtop = ax[1].twiny()
+    axtop.set_xticks(ax[1].get_xticks())
+    axtop.set_xbound(ax[1].get_xbound())
+    axtop.set_xticklabels(tick_function(ax[1].get_xticks()), rotation=70, ha='left')
+
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
+    # f.savefig(o, bbox_inches='tight', pad_inches=0.05)
     # auto_crop_img(o)
 
 
-def plot_phase_cycles(x_cyc, y_cyc, yerr_cyc, o):
+def plot_phase_cycles(x_cyc, y_cyc, yerr_cyc, x_cyc1, y_cyc1, yerr_cyc1, o, pdf, plot_errors=True):
     ymin = min([min(np.asarray(y)-np.asarray(dy)) for (y, dy) in zip(y_cyc, yerr_cyc)])
     ymax = max([max(np.asarray(y)+np.asarray(dy)) for (y, dy) in zip(y_cyc, yerr_cyc)])
 
-    plt.rcdefaults()
+    # ALL CYCLES TOGETHER
+    plt.close('all')
+    f, ax = plt.subplots(1, 2, figsize=(2*7,1*5))
 
-    f, ax = plt.subplots(1, 1)
     colormap = eval('plt.cm.'+param['colormap_cycles'])
     col_range = param['colormap_cycles_range']
-    ax.set_color_cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
+
+    ax[0].set_color_cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
     marker = itertools.cycle(('^', 's', 'o', 'p', 'v', '<', 'H', '*', 'h', '<', '>', 'D', 'd', '4'))
     for (x, y, yerr) in zip(x_cyc, y_cyc, yerr_cyc):
         xp, yp, yerrp = compute_orbital_phase(np.asarray(x), np.asarray(y), np.asarray(yerr))
-        ax.errorbar(xp, yp, yerr=yerrp, fmt='.', marker=marker.next(), markersize=8, elinewidth=1.0, capsize=0,
-                    markeredgewidth=0.00)
-    ax.set_xlabel(r'PHA')
-    ax.set_ylabel(r'$m$ (mag)')
-    ax.set_xlim(0, 2)
-    ax.set_ylim(ymin*(1-0.001), ymax*(1+0.001))
-    ax.set_ylim(ax.get_ylim()[::-1])
-    ax.yaxis.set_minor_locator(MultipleLocator(0.01))
-    f.savefig(o, bbox_inches='tight', pad_inches=0.05)
-    plt.close(f)
+        if not plot_errors:
+            yerrp=np.array(yerrp)*0.
+        ax[0].errorbar(xp, yp, yerr=yerrp, fmt='.', alpha=0.8, marker=marker.next(), markersize=8, elinewidth=1.0, capsize=0,
+                       markeredgewidth=0.00)
+    ax[0].set_xlabel(r'PHASE')
+    ax[0].set_ylabel(r'$m$ [mag]')
+    ax[0].xaxis.set_minor_locator(MultipleLocator(0.1))
+    ax[0].yaxis.set_minor_locator(AutoMinorLocator())
+    ax[0].grid()
+    ax[0].set_xlim(0, 2)
+    ax[0].set_ylim(ymin*(1-0.001), ymax*(1+0.001))
+    ax[0].set_ylim(ax[0].get_ylim()[::-1])
+    ax[0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+
+    ax[1].set_color_cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
+    marker = itertools.cycle(('^', 's', 'o', 'p', 'v', '<', 'H', '*', 'h', '<', '>', 'D', 'd', '4'))
+    k = True
+    for (x, y, yerr) in zip(x_cyc1, y_cyc1, yerr_cyc1):
+        xp, yp, yerrp = compute_orbital_phase(np.asarray(x), np.asarray(y), np.asarray(yerr))
+        if not plot_errors:
+            yerrp=np.array(yerrp)*0.
+        if k:
+            ax[1].errorbar(xp, yp, yerr=yerrp, fmt='.',  alpha=0.8, marker=marker.next(), markersize=8, elinewidth=1.0, capsize=0,
+                           markeredgewidth=0.00, label='Comp. star 1')
+            k = False
+        else:
+            ax[1].errorbar(xp, yp, yerr=yerrp, fmt='.',  alpha=0.8, marker=marker.next(), markersize=8, elinewidth=1.0, capsize=0,
+                           markeredgewidth=0.00)
+    ax[1].set_xlabel(r'PHASE')
+    ax[1].set_ylabel(r'$m$ [mag]')
+    ax[1].xaxis.set_minor_locator(MultipleLocator(0.1))
+    ax[1].yaxis.set_minor_locator(AutoMinorLocator())
+    ax[1].grid()
+    ax[1].set_xlim(0, 2)
+    ax[1].set_ylim(ax[1].get_ylim()[::-1])
+    ax[1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+    ax[1].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
+    # f.savefig(o, bbox_inches='tight', pad_inches=0.05)
     # auto_crop_img(o)
+
+    # CYCLE SUBPLOTS
+    k =0
+    if len(x_cyc) == 1:
+        k = 1
+    fs = (2*7, (len(x_cyc)+k)*4.6)
+
+    plt.close('all')
+    f2, ax2 = plt.subplots(len(x_cyc)+k, 2, sharex=False, sharey=False, figsize=fs)
+    colormap = eval('plt.cm.'+param['colormap_cycles'])
+    col_range = param['colormap_cycles_range']
+    # ax2.set_color_cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
+
+    colorc = itertools.cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
+    marker = itertools.cycle(('^', 's', 'o', 'p', 'v', '<', 'H', '*', 'h', '<', '>', 'D', 'd', '4'))
+    for (k, (x, y, yerr)) in enumerate(zip(x_cyc, y_cyc, yerr_cyc)):
+        xp, yp, yerrp = compute_orbital_phase(np.asarray(x), np.asarray(y), np.asarray(yerr))
+        if not plot_errors:
+            yerrp=np.array(yerrp)*0.
+        ax2[k, 0].errorbar(xp, yp, yerr=yerrp, fmt='.', marker=marker.next(), color=colorc.next(), markersize=8, elinewidth=1.0, capsize=0,
+                           markeredgewidth=0.00)
+        tmin = Time(np.asarray(x).min(), format='mjd', scale='utc').datetime.date()
+        tmax = Time(np.asarray(x).max(), format='mjd', scale='utc').datetime.date()
+        ax2[k, 0].set_title('Cycle number {} of {}\nFrom {} until {}'.format(str(k+1), len(x_cyc), tmin, tmax))
+        ax2[k, 0].set_xlabel(r'PHASE')
+        ax2[k, 0].set_ylabel(r'$m$ [mag]')
+        ax2[k, 0].xaxis.set_minor_locator(MultipleLocator(0.1))
+        ax2[k, 0].yaxis.set_minor_locator(AutoMinorLocator())
+        ax2[k, 0].grid()
+        ax2[k, 0].set_xlim(0, 2)
+        ax2[k, 0].set_ylim(ymin*(1-0.001), ymax*(1+0.001))
+        ax2[k, 0].set_ylim(ax2[k, 0].get_ylim()[::-1])
+        ax2[k, 0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+    if len(x_cyc) == 1:
+        ax2[1, 0].axis('off')
+
+    colorc = itertools.cycle([colormap(i) for i in np.linspace(col_range[0], col_range[1], len(x_cyc))])
+    marker = itertools.cycle(('^', 's', 'o', 'p', 'v', '<', 'H', '*', 'h', '<', '>', 'D', 'd', '4'))
+    for (k, (x, y, yerr)) in enumerate(zip(x_cyc1, y_cyc1, yerr_cyc1)):
+        xp, yp, yerrp = compute_orbital_phase(np.asarray(x), np.asarray(y), np.asarray(yerr))
+        if not plot_errors:
+            yerrp=np.array(yerrp)*0.
+        ax2[k, 1].errorbar(xp, yp, yerr=yerrp, fmt='.', marker=marker.next(), color=colorc.next(), markersize=8, elinewidth=1.0, capsize=0,
+                           markeredgewidth=0.00, label='Comp. star 1')
+        tmin = Time(np.asarray(x).min(), format='mjd', scale='utc').datetime.date()
+        tmax = Time(np.asarray(x).max(), format='mjd', scale='utc').datetime.date()
+        ax2[k, 1].set_title('Cycle number {} of {}\nFrom {} until {}'.format(str(k+1), len(x_cyc), tmin, tmax))
+        ax2[k, 1].set_xlabel(r'PHASE')
+        ax2[k, 1].set_ylabel(r'$m$ [mag]')
+        ax2[k, 1].xaxis.set_minor_locator(MultipleLocator(0.1))
+        ax2[k, 1].yaxis.set_minor_locator(AutoMinorLocator())
+        ax2[k, 1].grid()
+        ax2[k, 1].set_xlim(0, 2)
+        ax2[k, 1].set_ylim(ax2[k, 1].get_ylim()[::-1])
+        ax2[k, 1].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        ax2[k, 1].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+    if len(x_cyc) == 1:
+        ax2[1, 1].axis('off')
+
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
 
 
 def make_plots():
@@ -477,7 +668,7 @@ def make_plots():
     fig_width = fig_width_pt*inches_per_pt # width in inches
     fig_height = fig_width*golden_mean     # height in inches
     fig_size =  [fig_width,fig_height]
-    params = {'backend': 'ps',
+    params = {'backend': 'pdf',
               'font.family':'serif',
               'axes.labelsize': 12,
               'font.size': 8,
@@ -498,42 +689,87 @@ def make_plots():
 
     from matplotlib.backends.backend_pdf import PdfPages
     with PdfPages('{}data/mega_plot_{}.pdf'.format(output_path, field_name)) as pdf:
+        mjd_list, mag_list, std_list, mjd, nightly_avg_mag, nightly_std_mag, night_list = load_data(output_path, '{}_target'.format('0'))
+        mjd_list1, mag_list1, std_list1, mjd1, nightly_avg_mag1, nightly_std_mag1, night_list1 = load_data(output_path, '{}_compa1'.format('0'))
+
+        # WITH ERROR BARS
+        # MJD (averaged)
+        plot_mjd(mjd, nightly_avg_mag, nightly_std_mag, mjd1, nightly_avg_mag1, nightly_std_mag1, param['output_path']
+                 + 'multi_night_LC/MJD-{}-target-nightly_average.eps'.format(param['field_name']), pdf)
+        # PHASE (averaged)
+        plot_phase(compute_orbital_phase(mjd, nightly_avg_mag, nightly_std_mag), compute_orbital_phase(mjd1, nightly_avg_mag1, nightly_std_mag1), param['output_path']
+                   + 'multi_night_LC/PHA-{}-target-nightly_average.eps'.format(param['field_name']), pdf)
+        # Cycle coloured LCs (averaged)
+        if param['disable_plots_cycles'] == 0:
+            mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd, nightly_avg_mag, nightly_std_mag)
+            mjd_cyc1, mag_cyc1, merr_cyc1 = make_cycles(mjd1, nightly_avg_mag1, nightly_std_mag1)
+            # MJD (averaged)
+            plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                            + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
+            # PHASE (averaged)
+            plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                              + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
+        # MJD (not averaged)
+        plot_mjd(mjd_list, mag_list, std_list, mjd_list1, mag_list1, std_list1, param['output_path']
+                 + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']), pdf)
+        # PHASE (not averaged)
+        plot_phase(compute_orbital_phase(mjd_list, mag_list, std_list), compute_orbital_phase(mjd_list1, mag_list1, std_list1), param['output_path']
+                   + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']), pdf)
+        np.savetxt(param['output_path']+'data/'+'PHA_MAG_ERR-{}-nightly_average.dat'.format(param['field_name']),
+                   np.transpose(compute_orbital_phase_mid(mjd, nightly_avg_mag, nightly_std_mag)), delimiter=' ')
+        # Cycle coloured LCs (not averaged)
+        if param['disable_plots_cycles'] == 0:
+            mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd_list, mag_list, std_list)
+            mjd_cyc1, mag_cyc1, merr_cyc1 = make_cycles(mjd_list1, mag_list1, std_list1)
+            # MJD (not averaged)
+            plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                            + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
+            # PHASE (not averaged)
+            plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                              + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
+
+        # WITHOUT ERROR BARS
+        # MJD (averaged)
+        plot_mjd(mjd, nightly_avg_mag, nightly_std_mag*0., mjd1, nightly_avg_mag1, nightly_std_mag1*0.,param['output_path']
+                 + 'multi_night_LC/MJD-{}-target-nightly_average.eps'.format(param['field_name']), pdf)
+        # PHASE (averaged)
+        plot_phase(compute_orbital_phase(mjd, nightly_avg_mag, nightly_std_mag), compute_orbital_phase(mjd1, nightly_avg_mag1, nightly_std_mag1), param['output_path']
+                   + 'multi_night_LC/PHA-{}-target-nightly_average.eps'.format(param['field_name']), pdf, False)
+        # Cycle coloured LCs (averaged)
+        if param['disable_plots_cycles'] == 0:
+            mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd, nightly_avg_mag, nightly_std_mag)
+            mjd_cyc1, mag_cyc1, merr_cyc1 = make_cycles(mjd1, nightly_avg_mag1, nightly_std_mag1)
+            # MJD (averaged)
+            plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                            + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
+            # PHASE (averaged)
+            plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                              + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
+        # MJD (not averaged)
+        plot_mjd(mjd_list, mag_list, std_list*0., mjd_list1, mag_list1, std_list1*0., param['output_path']
+                 + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']), pdf)
+        # PHASE (not averaged)
+        plot_phase(compute_orbital_phase(mjd_list, mag_list, std_list), compute_orbital_phase(mjd_list1, mag_list1, std_list1), param['output_path']
+                   + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']), pdf, False)
+        # Cycle coloured LCs (not averaged)
+        if param['disable_plots_cycles'] == 0:
+            mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd_list, mag_list, std_list)
+            mjd_cyc1, mag_cyc1, merr_cyc1 = make_cycles(mjd_list1, mag_list1, std_list1)
+            # MJD (not averaged)
+            plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                            + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
+            # PHASE (not averaged)
+            plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                              + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
+
         mega_plot(output_path, 'average', field_name, title_name, nstars, pdf)
         mega_plot(output_path, 'single', field_name, title_name, nstars, pdf)
-        nightly_plots(output_path, 'single', field_name, title_name, nstars, pdf)
+        if param['disable_plots_nightly'] == 0:
+            nightly_plots(output_path, 'single', field_name, title_name, nstars, pdf)
 
-    # mjd_list, mag_list, std_list, mjd, nightly_avg_mag, nightly_std_mag = load_data(output_path)
-    # if param['disable_plots_error_bars'] == 1:
-    #     nightly_std_mag *= 0.
-    #     std_list *= 0.
-    #
-    # # Nightly light curves
-    # # plot_nightly_lc(mjd_list, mag_list, std_list, index_sets, param['output_path']+'nightly_LC/')
-    #
-    # # Multi night light curves
-    # plot_mjd(mjd_list, mag_list, std_list, param['output_path']
-    #          + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']))
-    # plot_mjd(mjd, nightly_avg_mag, nightly_std_mag, param['output_path']
-    #          + 'multi_night_LC/MJD-{}-target-nightly_average.eps'.format(param['field_name']))
-    #
-    # # Multi night phased light curves
-    # plot_phase(compute_orbital_phase(mjd_list, mag_list, std_list), param['output_path']
-    #            + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']))
-    # plot_phase(compute_orbital_phase(mjd, nightly_avg_mag, nightly_std_mag), param['output_path']
-    #            + 'multi_night_LC/PHA-{}-target-nightly_average.eps'.format(param['field_name']))
-    # np.savetxt(param['output_path']+'data/'+'PHA_MAG_ERR-{}-nightly_average.dat'.format(param['field_name']),
-    #            np.transpose(compute_orbital_phase_mid(mjd, nightly_avg_mag, nightly_std_mag)), delimiter=' ')
-    #
-    #
-    # # Multi night cycle coloured light curve
-    # if param['disable_plots_cycles'] == 0:
-    #     mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd, nightly_avg_mag, nightly_std_mag)
-    #     plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, param['output_path']
-    #                     + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']))
-    #
-    #     plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, param['output_path']
-    #                       + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']))
-    # #
+        # if param['field_name'] == 'lsi61303':
+            # plot_POvsPSO()
+
 
 if __name__ == '__main__':
     # Testing / plotting from data
