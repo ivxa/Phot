@@ -16,6 +16,7 @@ param = {
     'disable_plots': 0,                  # 1 to disable the plotting
     'disable_plots_cycles': 0,           # 1 to disable the orbital cycle plots (useful only for binary systems)
     'disable_plots_error_bars': 0,       # 1 to hide de error bars
+    'disable_plots_nightly': 1,          # 1 to disable nightly plots    
     'check_centering': 0,                # 1 to check the centering of the images
     'tol_center': 100,                   # Maximum distance in pixels of decentering
     'field_name': 'mwc656',              # Field name without empty spaces (it is used to build the directory tree)
@@ -42,7 +43,7 @@ param = {
     'nstars_tolerance': 0.35,            # Minimum ratio with respect the maximum number of stars
     'astrometric_tolerance': 6,          # Astrometric tolerance when matching stars at different images (in arcsec)
     'max_nstars_missmatch_tolerance': 0.75, # Maximum ratio of bad matching between frames
-    'sextractor_file': 'se.sex',         # SExtractor input file    
+    'sextractor_file': 'se.sex',         # SExtractor input file
     'scale_low': 3.87,                   # Minimum pixel scale of the CCD in arcsec/pix
     'scale_high': 3.89,                  # Maximum pixel scale of the CCD in arcsec/pix
     'output_path': '/home/gamma/garrofa/xparedes/photometry/test/mwc656/',               # The output path
