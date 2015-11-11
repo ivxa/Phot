@@ -270,7 +270,10 @@ def calibrate_data(i):
     if param['disable_screen_flat'] == 1:
         make_master_flat(i+'flats/', i+'bias/')
     calibrate_science_frames(i+'science/', i+'bias/', i+'darks/', i+'flats/')
-    os.remove('logfile')
+    try:
+        os.remove('logfile')
+    except OSError:
+        pass
 
 
 if __name__ == '__main__':

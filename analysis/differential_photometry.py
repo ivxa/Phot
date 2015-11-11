@@ -236,7 +236,7 @@ def comp_stars_info(ii, i, ra, dec, ra0, dec0):
 
 
 def pick_comparison_stars(ind_ref, w):
-    return ind_ref[2:], w[2:], ind_ref[0], ind_ref[1] # ind_ref is sorted in increasing weight
+    return ind_ref[2:], w[2:], ind_ref[1], ind_ref[0] # ind_ref is sorted in increasing weight
 
 
 def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):

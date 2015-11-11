@@ -17,7 +17,7 @@ def apply_offset(cat_mag, offset):
 
 
 def compute_final_magnitudes(cat_mag, ind):
-    nightly_avg_mag = [np.average(mag[:, ind]) for mag in cat_mag]
+    # nightly_avg_mag = [np.average(mag[:, ind]) for mag in cat_mag]
     nightly_std_mag = [np.std(mag[:, ind]) for mag in cat_mag]
 
     night_numbering = [[i+1]*len(mag[:, 0]) for (i, mag) in enumerate(cat_mag)]
@@ -31,6 +31,10 @@ def compute_final_magnitudes(cat_mag, ind):
     frames_per_night = [len(mag[:, ind]) for mag in cat_mag]
     std_list = []
     [std_list.extend([nightly_std_mag[k]]*frames_per_night[k]) for k in xrange(len(frames_per_night))]
+
+    # Errorbars of the mean divided by sqrt(n)
+    nightly_avg_mag = [np.average(mag[:, ind]) for mag in cat_mag]
+    nightly_std_mag = [np.std(mag[:, ind])/np.sqrt(np.float(len(mag[:, ind]))) for mag in cat_mag]
     return mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list
 
 

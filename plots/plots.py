@@ -244,7 +244,10 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
 
         pha_t, mag_pha_t, mag_err_pha_t = compute_orbital_phase(mjd_t, nightly_avg_mag_t, nightly_std_mag_t)
         ax[2, j].errorbar(pha_t, mag_pha_t, yerr=mag_err_pha_t, fmt='b.', alpha=alpha_plots, markersize=7, elinewidth=1.0, capsize=0, label='{}'.format(tn))
-        ax[2, j].set_title('{} LC of {} with error bars\n(computed as the std of the nightly images)'.format(tname, tn))
+        if suff == 'average':
+            ax[2, j].set_title('{} LC of {} with error bars\n(computed as the std/sqrt(n) of the nightly images)'.format(tname, tn))
+        else:
+            ax[2, j].set_title('{} LC of {} with error bars\n(computed as the std of the nightly images)'.format(tname, tn))
         ax[2, j].set_xlim((0,2))
         ax[2, 0].set_ylabel('$m$ [mag]')
         ax[2, j].set_xlabel('PHASE (P = {:.3f} d)'.format(param['period']))
@@ -692,6 +695,13 @@ def make_plots():
         mjd_list, mag_list, std_list, mjd, nightly_avg_mag, nightly_std_mag, night_list = load_data(output_path, '{}_target'.format('0'))
         mjd_list1, mag_list1, std_list1, mjd1, nightly_avg_mag1, nightly_std_mag1, night_list1 = load_data(output_path, '{}_compa1'.format('0'))
 
+        if param['field_name'] == 'lsi61303':
+            try:
+                from plots_lsi61303 import make_plots_lsi61303
+                make_plots_lsi61303(pdf)
+            except:
+                pass
+
         # WITH ERROR BARS
         # MJD (averaged)
         plot_mjd(mjd, nightly_avg_mag, nightly_std_mag, mjd1, nightly_avg_mag1, nightly_std_mag1, param['output_path']
@@ -766,9 +776,6 @@ def make_plots():
         mega_plot(output_path, 'single', field_name, title_name, nstars, pdf)
         if param['disable_plots_nightly'] == 0:
             nightly_plots(output_path, 'single', field_name, title_name, nstars, pdf)
-
-        # if param['field_name'] == 'lsi61303':
-            # plot_POvsPSO()
 
 
 if __name__ == '__main__':
