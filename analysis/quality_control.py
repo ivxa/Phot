@@ -21,6 +21,17 @@ def plot_nstars(cat_ra, cat_mjd, suff):
     fig.savefig(param['output_path']+'maximum_number_of_stars_per_night'+suff, bbox_inches='tight', pad_inches=0.05)
     plt.close(fig)
 
+    nstars = [min([len(frame) for frame in ra]) for ra in cat_ra]
+    mjd = [np.average(mjd) for mjd in cat_mjd]
+    plt.rcdefaults()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(mjd, nstars, '.')
+    ax.set_xlabel('MJD')
+    ax.set_ylabel('Minimum number of stars per night')
+    fig.savefig(param['output_path']+'minimum_number_of_stars_per_night'+suff, bbox_inches='tight', pad_inches=0.05)
+    plt.close(fig)    
+
 
 def remove_individual_frames(cat_ra, cat_dec, cat_mag, cat_mjd, max_stars, frame_list_grouped):
     nnights = len(cat_ra)

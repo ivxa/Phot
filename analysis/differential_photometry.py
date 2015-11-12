@@ -10,6 +10,31 @@ import sys
 param = {}
 execfile(sys.argv[1])
 
+def find_stars(ra, dec, stars, testing=0):
+    ind_list = []
+    for star in stars:
+        ra0 = star[0]
+        dec0 = star[1]
+        cat = SkyCoord(ra*u.degree, dec*u.degree)
+        # tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
+        tar = SkyCoord(ra0*u.hour, dec0*u.degree)#degree)
+        ind, sep2d, dist3d = tar.match_to_catalog_sky(cat)
+        ind_list.append(int(ind))
+        if sep2d.arcsec > param['astrometric_tolerance']:
+            raise RuntimeError("Reference star not found")
+        if testing == 1:
+            ra = np.delete(ra, ind)
+            dec = np.delete(dec, ind)
+            ind = find_target(ra, dec, ra0, dec0, testing=0)
+        # print 'Index value: {}'.format(ind)
+    # print ind_list
+
+    w = np.array(eval(param['weights']))
+    ind_list = np.array(ind_list)
+    ind_list = ind_list[w.argsort()]#[::-1]
+    assert len(stars) == len(ind_list), 'Could not find reference stars'
+    assert len(w) == len(ind_list), 'len(w) != nstars'
+    return ind_list, w
 
 def find_target(ra, dec, ra0, dec0, testing=0):
     tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
@@ -66,7 +91,7 @@ def magnitude_selection(mag, mag_target, sel, mmin, mmax, testing =1):
     return sel
 
 
-def correct_magnitudes(cm, m0, ind_ref, w, testing=1):
+def correct_magnitudes(cm, m0, ind_ref, w, testing=0):
     ns = len(ind_ref)
     for (i, m) in enumerate(cm):
         # Number of frames
@@ -241,9 +266,14 @@ def pick_comparison_stars(ind_ref, w):
 
 def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
     ind = find_target(cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
-    bool_sel = np.ones(len(cat_ra[0][0, :]), dtype=bool)
-    bool_sel = distance_selection(cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'], param['dmax'], bool_sel)
-    ind_ref, w = ref_star_selection(cat_mag[:], ind, bool_sel, param['nsel'], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
+
+    if param['auto_sel']:
+        bool_sel = np.ones(len(cat_ra[0][0, :]), dtype=bool)
+        bool_sel = distance_selection(cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'], param['dmax'], bool_sel)
+        ind_ref, w = ref_star_selection(cat_mag[:], ind, bool_sel, param['nsel'], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
+    else:
+        ind_ref, w = find_stars(cat_ra[0][0, :], cat_dec[0][0, :], eval(param['reference_stars']))
+
     ind_ref, w, ind_comp1, ind_comp2 = pick_comparison_stars(ind_ref, w)
     comp_stars_info(1, ind_comp1, cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
     comp_stars_info(2, ind_comp2, cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])

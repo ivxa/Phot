@@ -30,12 +30,14 @@ def make_output_folder(o):
         os.makedirs(o+'multi_night_LC')
         os.makedirs(o+'std_multi_night_plots')
         os.makedirs(o+'RMSvsMAG')
+        os.makedirs(o+'check_images')
     else:
         check_and_make('nightly_LC')
         check_and_make('multi_night_LC')
         check_and_make('std_multi_night_plots')
         check_and_make('RMSvsMAG')
         check_and_make('data')
+        check_and_make('check_images')       
 
 
 def load_frame_list(f):

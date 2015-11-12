@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import subprocess
 from astropy.io import fits
+from astropy.time import Time
 param = {}
 execfile(sys.argv[1])
 
@@ -28,9 +29,13 @@ def make_image_list(i, fl):
     return t
 
 
-def call_sextractor(i, im, sl):
+def call_sextractor(i, im, sl, first_time):
     cat_name = i+'/cat/'+im[:-6]+'.cat'
-    cmd = 'sex {} -c {} -CATALOG_NAME {} -SATUR_LEVEL {}'.format(i+'/cal/'+im, param['sextractor_file'], cat_name, sl)
+    if first_time:
+        check_images_path = param['output_path']+'check_images/'+str(im)
+        cmd = 'sex {} -c se.sex -CATALOG_NAME {} -SATUR_LEVEL {} -CHECKIMAGE_NAME {}'.format(i+'/cal/'+im, cat_name, sl, check_images_path)
+    else:
+        cmd = 'sex {} -c se.sex -CATALOG_NAME {} -SATUR_LEVEL {}'.format(i+'/cal/'+im, cat_name, sl)
     if param['disable_analysis_extraction'] == 0:
         subprocess.call(cmd, shell=True)
     return cat_name
@@ -40,10 +45,15 @@ def create_catalog_arrays(i, il, sl):
     cat_list_ra = []
     cat_list_dec = []
     cat_list_mag = []
+    first_time = True
     for im in il:
-        cat_name = call_sextractor(i, im, sl)
+        cat_name = call_sextractor(i, im, sl, first_time)
+        first_time = False
         mag, x, y, flag = np.loadtxt(cat_name, usecols=(0, 2, 3, 4), unpack=True)
 
+        if 1 == 0:
+            print '\n * Number of extracted stars with 0 flag: {} \n'.format(len(flag[flag==0]))
+            sys.exit(1)
         # SExtractor is unable to read the tan-sip wcs produced by Astrometry.net
         from astropy import wcs
         w = wcs.WCS(i+'/cal/'+im)
@@ -61,7 +71,7 @@ def remove_cat_folder(i):
 
 
 def create_mjd_catalog(i, il):
-    return [fits.getheader(i+fn)['MJD'] for fn in il]
+    return [Time(fits.getheader(i+fn)['DATE-OBS']+'T'+fits.getheader(i+fn)['TIME-OBS'], format='isot', scale='utc').mjd for fn in il]
 
 
 def perform_extraction(i, frame_list, testing=1):

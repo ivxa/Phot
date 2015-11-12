@@ -11,17 +11,34 @@ param = {}
 execfile(sys.argv[1])
 
 
-def find_target(ra, dec, ra0, dec0, fl, testing=0):
-    tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
-    cat = SkyCoord(ra*u.degree, dec*u.degree)
-    ind, sep2d, dist3d = tar.match_to_catalog_sky(cat)
-    if sep2d.arcsec > param['astrometric_tolerance']:
-        print("\n  Target not found:\n"
-              "  - Target nominal coordinates: {} {}\n"
-              "  - Extracted coordinates: {} {}\n"
-              "  - Angular separation: {} arcsec\n"
-              "  - Frame path:\n  {}".format(ra0, dec0, ra[ind], dec[ind], sep2d.arcsec, fl))
-        return False
+def find_target(ra, dec, stars, fl, testing=0):
+    if param['auto_sel']:
+        stars = stars[0]
+        ra0, dec0 = stars[0], stars[1]
+        tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
+        cat = SkyCoord(ra*u.degree, dec*u.degree)
+        ind, sep2d, dist3d = tar.match_to_catalog_sky(cat)
+        if sep2d.arcsec > param['astrometric_tolerance']:
+            print("\n  Target not found:\n"
+                  "  - Target nominal coordinates: {} {}\n"
+                  "  - Extracted coordinates: {} {}\n"
+                  "  - Angular separation: {} arcsec\n"
+                  "  - Frame path:\n  {}".format(ra0, dec0, ra[ind], dec[ind], sep2d.arcsec, fl))
+            return False
+    else:
+        for star in stars:
+            ra0 = star[0]
+            dec0 = star[1]
+            tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
+            cat = SkyCoord(ra*u.degree, dec*u.degree)
+            ind, sep2d, dist3d = tar.match_to_catalog_sky(cat)
+            if sep2d.arcsec > param['astrometric_tolerance']:
+                print("\n  Target not found:\n"
+                      "  - Target nominal coordinates: {} {}\n"
+                      "  - Extracted coordinates: {} {}\n"
+                      "  - Angular separation: {} arcsec\n"
+                      "  - Frame path:\n  {}".format(ra0, dec0, ra[ind], dec[ind], sep2d.arcsec, fl))
+                return False
     return True
 
 
@@ -48,6 +65,13 @@ def perform_match(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list, testing=0, loop
     tol = param['astrometric_tolerance']
     # Convert from arcsec to deg
     tol /= 3600.
+
+    target = [(param['ra'], param['dec'])]
+    if param['auto_sel']:
+        stars = target
+    else:
+        reference_stars = eval(param['reference_stars'])
+        stars = target+reference_stars
 
     # Creates the catalog of the reference frame (first frame of the first night)
     cat1 = SkyCoord(cat_ra[0][0]*u.degree, cat_dec[0][0]*u.degree)
@@ -80,7 +104,7 @@ def perform_match(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list, testing=0, loop
 
             # Match the target nominal position with the current image
             found = False
-            if find_target(ra[i], dec[i], param['ra'], param['dec'], fl[i]):
+            if find_target(ra[i], dec[i], stars, fl[i]):
                 img_mask.extend([i])
                 found = True
 
@@ -161,4 +185,3 @@ def perform_match(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list, testing=0, loop
 if __name__ == '__main__':
     # Testing
     print('STOP: Testing should be done from analysis.py')
-
