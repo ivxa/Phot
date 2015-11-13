@@ -1,7 +1,3 @@
-# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
-# License: MIT, see LICENSE.md
-
-
 param = {
     'rerun': 0,
     'disable_calibration': 0,
@@ -19,7 +15,7 @@ param = {
     'disable_plots_nightly': 0,
     'check_centering': 0,
     'tol_center': 100,
-    'field_name': 'B',
+    'field_name': 'R',
     'title_name': 'MWC 656',
     'zero_magnitude': 8.81,
     'period': 60.37,
@@ -32,13 +28,13 @@ param = {
     'auto_sel': False,
     'create_ref_star_list': False,
     'ref_star_file': 'ref_and_comp_stars_B_.dat',
-    'ref_star_file_out': '/home/gamma/garrofa/xparedes/photometry_tjo/test/',
+    'ref_star_file_out': '/home/gamma/garrofa/xparedes/photometry_tjo/mwc656/',
     'dmax': 1.0,
     'dmax_final': 0.3,
     'mmin0': 2,
     'mmax0': 3,
     'mmin': 2.0,
-    'mmax': 4.0,  # YOU SHOULD CHOOSE VALUES CLOSE TO YOUR TARGET TO AVOID CORRECTING ONLY THE MOST ABUNDANT STARS
+    'mmax': 2.0,  # YOU SHOULD CHOOSE VALUES CLOSE TO YOUR TARGET TO AVOID CORRECTING ONLY THE MOST ABUNDANT STARS
     'nsel': 5,
     'nsel_plots': 5,
     'radius': 0.15,
@@ -46,14 +42,14 @@ param = {
     'nstars_tolerance': 0.35,
     'astrometric_tolerance': 12,
     'max_nstars_missmatch_tolerance': 0.75,
-    'sextractor_file': 'se.sex',
+    'sextractor_file': 'se_mwc656_tjo.sex',
     'scale_low': 0.34,
     'scale_high': 0.38,
-    'frame_list': '/home/gamma/garrofa/xparedes/photometry_tjo/test/B/frame_list.txt',
-    'data_path': '/home/gamma/garrofa/xparedes/data/tjo_test/',
+    'frame_list': '/home/gamma/garrofa/xparedes/photometry_tjo/mwc656/R/frame_list.txt',
+    'data_path': '/home/gamma/garrofa/xparedes/data/tjo/',
     'crop_region': (998.0, 3098.0, 998.0, 3098.0), #(1550.0, 2950.0, 1550.0, 2550.0)
     'source_xy_shift': (0, 0),
     'saturation_level': 55000.,
     'saturation_level_post_calibration': 53000.,
-    'output_path': '/home/gamma/garrofa/xparedes/Dropbox/photometry_tjo/test/B/'
+    'output_path': '/home/gamma/garrofa/xparedes/Dropbox/photometry_tjo/mwc656/R/'
 }

@@ -26,10 +26,13 @@ def find_target(ra, dec, stars, fl, testing=0):
                   "  - Frame path:\n  {}".format(ra0, dec0, ra[ind], dec[ind], sep2d.arcsec, fl))
             return False
     else:
-        for star in stars:
+        for s, star in enumerate(stars):
             ra0 = star[0]
             dec0 = star[1]
-            tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
+            if s == 0:
+                tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
+            else:
+                tar = SkyCoord(ra0*u.degree, dec0*u.degree)
             cat = SkyCoord(ra*u.degree, dec*u.degree)
             ind, sep2d, dist3d = tar.match_to_catalog_sky(cat)
             if sep2d.arcsec > param['astrometric_tolerance']:
@@ -70,7 +73,9 @@ def perform_match(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list, testing=0, loop
     if param['auto_sel']:
         stars = target
     else:
-        reference_stars = eval(param['reference_stars'])
+        with open(param['ref_star_file_out']+param['ref_star_file'], 'r') as f:
+            lines = f.readlines()
+            reference_stars = eval(lines[0])
         stars = target+reference_stars
 
     # Creates the catalog of the reference frame (first frame of the first night)

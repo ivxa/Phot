@@ -17,7 +17,7 @@ def find_stars(ra, dec, stars, testing=0):
         dec0 = star[1]
         cat = SkyCoord(ra*u.degree, dec*u.degree)
         # tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
-        tar = SkyCoord(ra0*u.hour, dec0*u.degree)#degree)
+        tar = SkyCoord(ra0*u.degree, dec0*u.degree)#degree)
         ind, sep2d, dist3d = tar.match_to_catalog_sky(cat)
         ind_list.append(int(ind))
         if sep2d.arcsec > param['astrometric_tolerance']:
@@ -29,12 +29,9 @@ def find_stars(ra, dec, stars, testing=0):
         # print 'Index value: {}'.format(ind)
     # print ind_list
 
-    w = np.array(eval(param['weights']))
-    ind_list = np.array(ind_list)
-    ind_list = ind_list[w.argsort()]#[::-1]
     assert len(stars) == len(ind_list), 'Could not find reference stars'
-    assert len(w) == len(ind_list), 'len(w) != nstars'
-    return ind_list, w
+    return np.array(ind_list)
+
 
 def find_target(ra, dec, ra0, dec0, testing=0):
     tar = SkyCoord(ra0, dec0, unit=(u.hour, u.deg))
@@ -272,8 +269,21 @@ def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
         bool_sel = distance_selection(cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'], param['dmax'], bool_sel)
         ind_ref, w = ref_star_selection(cat_mag[:], ind, bool_sel, param['nsel'], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
     else:
-        ind_ref, w = find_stars(cat_ra[0][0, :], cat_dec[0][0, :], eval(param['reference_stars']))
+        with open(param['ref_star_file_out']+param['ref_star_file'], 'r') as f:
+            lines = f.readlines()
+            stars = eval(lines[0])
+            w = np.array(eval(lines[1]))
+            ind_ref_original = np.array(eval(lines[2]))
+            ind_ref = find_stars(cat_ra[0][0, :], cat_dec[0][0, :], stars)
+            ind_ref = ind_ref[w.argsort()]#[::-1]
+            print type(ind_ref)
+            print type(ind_ref_original)
+            print ind_ref
+            print ind_ref_original
+            assert set(ind_ref) == set(ind_ref_original), 'ERROR: incocherent indices'
 
+    ind_ref_and_comp = ind_ref[:]
+    w_ref_and_comp = w[:]
     ind_ref, w, ind_comp1, ind_comp2 = pick_comparison_stars(ind_ref, w)
     comp_stars_info(1, ind_comp1, cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
     comp_stars_info(2, ind_comp2, cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'])
@@ -292,7 +302,7 @@ def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
         ref_stars_info(i, ind_excluded, cat_mag_corrected[0][:, :], cat_ra[0][0, :], cat_dec[0][0, :], param['ra'], param['dec'], w[i])
     assert len(ind_ref_list) == len(ind_ref)
     assert len(cat_mag_corrected_list) == len(ind_ref)
-    return cat_mag_corrected_list, ind, ind_ref_list, ind_comp_list, ind_comp1, ind_comp2
+    return cat_mag_corrected_list, ind, ind_ref_list, ind_comp_list, ind_comp1, ind_comp2, ind_ref_and_comp, w_ref_and_comp
 
 
 if __name__ == '__main__':

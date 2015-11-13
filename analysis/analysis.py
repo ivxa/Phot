@@ -37,7 +37,7 @@ def make_output_folder(o):
         check_and_make('std_multi_night_plots')
         check_and_make('RMSvsMAG')
         check_and_make('data')
-        check_and_make('check_images')       
+        check_and_make('check_images')
 
 
 def load_frame_list(f):
@@ -89,8 +89,21 @@ def analyze_data():
     cat_ra, cat_dec, cat_mag, cat_mjd, frame_list = source_match.perform_match(cat_ra, cat_dec, cat_mag, cat_mjd, frame_list)
     multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_01_qc.eps'.format(field_name))
     print('\nOK\nComputing the differential photometry...\n')
-    cat_mag, ind, ind_ref, ind_comp, ind_comp1, ind_comp2 = differential_photometry.compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, output_path+'multi_night_LC/')
+    cat_mag, ind, ind_ref, ind_comp, ind_comp1, ind_comp2, ind_ref_and_comp, w_ref_and_comp = differential_photometry.compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, output_path+'multi_night_LC/')
     multi_night_std_test.perform_test(cat_mag[0], output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff.eps'.format(str('0'), field_name))
+
+    if (param['create_ref_star_list'] == True) and (param['auto_sel'] == True):
+        ra_dec_to_save = []
+        for ii in ind_ref_and_comp:
+            ra_dec_to_save.append((cat_ra[0][0, ii], cat_dec[0][0, ii]))
+        with open(param['ref_star_file_out']+param['ref_star_file'], 'w') as f:
+            f.write(str(ra_dec_to_save)+'\n')
+            f.write(str(w_ref_and_comp.tolist())+'\n')
+            f.write(str(ind_ref_and_comp.tolist()))
+        print '\nREFERENCE STAR LIST FILE CREATED AT {}'.format(param['ref_star_file_out']+param['ref_star_file'])
+        print '\nNormal termination.'
+        sys.exit(1)
+
     for (i, cat_mag_i) in enumerate(cat_mag):
         print('OK\nPerforming a quality control using photometric catalogs...'),
         # cat_ra, cat_dec, cat_mag_i, cat_mjd, frame_list = quality_control.photometric_qc(cat_ra, cat_dec, cat_mag_i, cat_mjd, frame_list)
