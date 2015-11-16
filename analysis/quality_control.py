@@ -28,6 +28,14 @@ def remove_individual_frames(cat_ra, cat_dec, cat_mag, cat_mjd, max_stars, frame
     counter = 0
 
     for (i, night) in enumerate(cat_ra):
+        # cat_ra: catalog of nightly catalogs
+        # night: nightly catalog (one catalog per frame of this night)
+        # c: catalog of a frame of a given night
+        # n: number of stars for a given frame
+        # j: frame number of a given night
+        # img_mask: array of selected frames for a given night
+        assert len(np.asarray(frame_list_grouped[i])) == len(night), 'Folder list and frame list inconsistency\n{}'.format(np.asarray(frame_list_grouped[i])[0])
+
         img_mask = np.asarray([j for (j, n) in enumerate([len(c) for c in night])
                                if n > max_stars*param['nstars_tolerance']])
         counter += len(night)-len(img_mask)
@@ -39,6 +47,7 @@ def remove_individual_frames(cat_ra, cat_dec, cat_mag, cat_mjd, max_stars, frame
             cat_mag[i] = np.asarray(cat_mag[i])[img_mask]
             cat_mjd[i] = np.asarray(cat_mjd[i])[img_mask]
             frame_list_grouped[i] = np.asarray(frame_list_grouped[i])[img_mask]
+
     if len(night_mask) != 0:
         print '  Discarding the nights: {}'.format(night_mask)
     for (i, bad_night) in enumerate(night_mask):
