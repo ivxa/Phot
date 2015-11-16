@@ -38,8 +38,8 @@ param = {
     'mmin0': 2,
     'mmax0': 3,
     'mmin': 2.0,
-    'mmax': 2.0,  # YOU SHOULD CHOOSE VALUES CLOSE TO YOUR TARGET TO AVOID CORRECTING ONLY THE MOST ABUNDANT STARS
-    'nsel': 5,
+    'mmax': 3.5,  # YOU SHOULD CHOOSE VALUES CLOSE TO YOUR TARGET TO AVOID CORRECTING ONLY THE MOST ABUNDANT STARS
+    'nsel': 3,
     'nsel_plots': 5,
     'radius': 0.15,
     'min_frames_per_night': 5,

@@ -273,14 +273,8 @@ def compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, o):
             lines = f.readlines()
             stars = eval(lines[0])
             w = np.array(eval(lines[1]))
-            ind_ref_original = np.array(eval(lines[2]))
             ind_ref = find_stars(cat_ra[0][0, :], cat_dec[0][0, :], stars)
             ind_ref = ind_ref[w.argsort()]#[::-1]
-            print type(ind_ref)
-            print type(ind_ref_original)
-            print ind_ref
-            print ind_ref_original
-            assert set(ind_ref) == set(ind_ref_original), 'ERROR: incocherent indices'
 
     ind_ref_and_comp = ind_ref[:]
     w_ref_and_comp = w[:]

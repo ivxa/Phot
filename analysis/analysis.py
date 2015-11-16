@@ -54,7 +54,7 @@ def load_frame_list(f):
     return sorted(frame_list)
 
 
-def save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list, o, testing=1):
+def save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list, o, testing=0):
     if testing == 1:
         print '\n  len(mjd_list): {}'.format(len(mjd_list))
         print '  len(mag_list): {}'.format(len(mag_list))
@@ -99,13 +99,14 @@ def analyze_data():
         with open(param['ref_star_file_out']+param['ref_star_file'], 'w') as f:
             f.write(str(ra_dec_to_save)+'\n')
             f.write(str(w_ref_and_comp.tolist())+'\n')
-            f.write(str(ind_ref_and_comp.tolist()))
+            # f.write(str(ind_ref_and_comp.tolist())) # useless: different filter imply different catalogs...
         print '\nREFERENCE STAR LIST FILE CREATED AT {}'.format(param['ref_star_file_out']+param['ref_star_file'])
         print '\nNormal termination.'
         sys.exit(1)
 
     for (i, cat_mag_i) in enumerate(cat_mag):
-        print('OK\nPerforming a quality control using photometric catalogs...'),
+        if i == 0:
+            print('OK\nPerforming a quality control using photometric catalogs...'),
         # cat_ra, cat_dec, cat_mag_i, cat_mjd, frame_list = quality_control.photometric_qc(cat_ra, cat_dec, cat_mag_i, cat_mjd, frame_list)
         # multi_night_std_test.perform_test(cat_mag_i, output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff-qc-.eps'.format(field_name))
         print('\nOK\nAplying xy fit correction...'),
@@ -128,9 +129,11 @@ def analyze_data():
             else:
                 fname = 'refere'
                 compute_offset = False
-            print('OK\nApplying an artificial offset...'),
+            if i == 0:
+                print('OK\nApplying an artificial offset...'),
             cat_mag_i, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list, night_numbering_list, offset_value = offset.add_offset(cat_mag_i, cat_mjd, ii, offset_value, compute_offset)
-            print('OK\nSaving the data files of the light curves...')
+            if i == 0:
+                print('OK\nSaving the data files of the light curves...')
             save_data(mjd, mjd_list, mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list, output_path+'data/S{}_{}_'.format(str(i),fname))
         multi_night_std_test.perform_test(cat_mag_i, output_path+'std_multi_night_plots/S{}_std_{}_multi_night_02_qc-diff.eps'.format(str(i), field_name), ind, ind_comp[i], ind_ref[i], ind_comp1, ind_comp2)
     print('OK\nCopying the setup input file...')
