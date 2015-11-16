@@ -66,7 +66,7 @@ def magnitude_selection(mag, mag_target, sel, mmin, mmax, testing =1):
     return sel
 
 
-def correct_magnitudes(cm, m0, ind_ref, w, testing=1):
+def correct_magnitudes(cm, m0, ind_ref, w, testing=0):
     ns = len(ind_ref)
     for (i, m) in enumerate(cm):
         # Number of frames
@@ -205,10 +205,10 @@ def ref_star_selection(cat_mag, ind, bool_sel, nsel, ra, dec, ra0, dec0,):
             raise RuntimeError("Not enough reference stars")
         ind_ref = std_m.argsort()[0:nsel]
 
-        print '\nStar label {}, std: {}'.format(ind_ref[0], std_m[ind_ref[0]])
-        print 'Star label {}, std: {}'.format(ind_ref[1], std_m[ind_ref[1]])
-        print 'Star label {}, std: {}'.format(ind_ref[2], std_m[ind_ref[2]])
-        print 'Star label {}, std: {}'.format(ind_ref[3], std_m[ind_ref[3]])
+        # print '\nStar label {}, std: {}'.format(ind_ref[0], std_m[ind_ref[0]])
+        # print 'Star label {}, std: {}'.format(ind_ref[1], std_m[ind_ref[1]])
+        # print 'Star label {}, std: {}'.format(ind_ref[2], std_m[ind_ref[2]])
+        # print 'Star label {}, std: {}'.format(ind_ref[3], std_m[ind_ref[3]])
 
         mag0 = cat_mag[0][0, :]
         cat_mag_corrected = correct_magnitudes(cat_mag[:], mag0[:], ind_ref, 1./std_m[ind_ref]**2.)
