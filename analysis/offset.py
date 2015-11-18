@@ -34,7 +34,7 @@ def compute_final_magnitudes(cat_mag, ind):
 
     # Errorbars of the mean divided by sqrt(n)
     nightly_avg_mag = [np.average(mag[:, ind]) for mag in cat_mag]
-    nightly_std_mag = [np.std(mag[:, ind])/np.sqrt(np.float(len(mag[:, ind]))) for mag in cat_mag]
+    # nightly_std_mag = [np.std(mag[:, ind])/np.sqrt(np.float(len(mag[:, ind]))) for mag in cat_mag]
     return mag_list, std_list, nightly_avg_mag, nightly_std_mag, night_numbering_list
 
 

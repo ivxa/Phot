@@ -1,9 +1,15 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
+
 param = {
     'rerun': 0,
     'disable_calibration': 0,
     'disable_standard_cal': 1,
-    'disable_screen_flat': 0,
+    'disable_flats': 0,
+    'flats_dir': '/home/gamma/garrofa/xparedes/data/tjo/flats_R/',
     'disable_bias': 1,
+    'disable_darks': 1,
     'disable_calibration_shutter': 1,
     'disable_calibration_lin': 1,
     'disable_analysis': 0,
@@ -27,7 +33,7 @@ param = {
     'dec': '+44:43:18',
     'auto_sel': False,
     'create_ref_star_list': False,
-    'ref_star_file': 'ref_and_comp_stars_B_.dat',
+    'ref_star_file': 'ref_and_comp_stars.dat',
     'ref_star_file_out': '/home/gamma/garrofa/xparedes/photometry_tjo/mwc656/',
     'dmax': 1.0,
     'dmax_final': 0.3,
@@ -35,7 +41,7 @@ param = {
     'mmax0': 3,
     'mmin': 2.0,
     'mmax': 2.0,  # YOU SHOULD CHOOSE VALUES CLOSE TO YOUR TARGET TO AVOID CORRECTING ONLY THE MOST ABUNDANT STARS
-    'nsel': 5,
+    'nsel': 4,
     'nsel_plots': 5,
     'radius': 0.15,
     'min_frames_per_night': 5,

@@ -90,7 +90,8 @@ def analyze_data():
     multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_01_qc.eps'.format(field_name))
     print('\nOK\nComputing the differential photometry...\n')
     cat_mag, ind, ind_ref, ind_comp, ind_comp1, ind_comp2, ind_ref_and_comp, w_ref_and_comp = differential_photometry.compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, output_path+'multi_night_LC/')
-    multi_night_std_test.perform_test(cat_mag[0], output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff.eps'.format(str('0'), field_name))
+    for i in range(len(ind_ref)):
+        multi_night_std_test.perform_test(cat_mag[::-1][i], output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff.eps'.format(str(i), field_name))
 
     if (param['create_ref_star_list'] == True) and (param['auto_sel'] == True):
         ra_dec_to_save = []
@@ -130,7 +131,7 @@ def analyze_data():
                 fname = 'refere'
                 compute_offset = False
             if (i == 0) and (k == 0):
-                print('OK\nApplying an artificial offset...'),
+                print('OK\nApplying an artificial offset...')
             cat_mag_i, mag_list, std_list, nightly_avg_mag, nightly_std_mag, mjd, mjd_list, night_numbering_list, offset_value = offset.add_offset(cat_mag_i, cat_mjd, ii, offset_value, compute_offset)
             if (i == 0) and (k == 0):
                 print('OK\nSaving the data files of the light curves...')

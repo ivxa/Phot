@@ -12,7 +12,7 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 plt.rcdefaults()
 
 
-def read_data(dir_base):
+def read_data(dir_base, suffix):
     filters = ['B', 'V', 'R', 'I']
 
     JD = {}
@@ -20,8 +20,8 @@ def read_data(dir_base):
     MAG = {}
     ERR = {}
     for f in filters:
-        dir_in = os.path.join(dir_base, f, 'data/MJD_MAG_ERR-{}-nightly_average.dat'.format(f))
-        MJD[f], MAG[f], ERR[f] = np.loadtxt(dir_in, unpack=True, delimiter=' ')
+        dir_in = os.path.join(dir_base, f, 'data/S0_{}_MJD_MAG_ERR-{}-nightly_average.dat'.format(suffix, f))
+        MJD[f], MAG[f], ERR[f], _nframes = np.loadtxt(dir_in, unpack=True, delimiter=' ')
         JD[f] = np.floor(MJD[f]+2400000.5) # JD starts at 12:00, use the same nights
 
     for f in filters:
@@ -65,32 +65,100 @@ def plot_single_color(col, xlab, dir_out, fname):
     f.savefig(os.path.join(dir_out, fname), bbox_inches='tight', pad_inches=0.05)
 
 
-def plot_filters(MJD, MAG, ERR, dir_out):
+def plot_filters(MJD, MAG, ERR, label1, MJDc, MAGc, ERRc, label2, dir_out, pdf):
     filters = ['B', 'V', 'R', 'I']
-    fig, ax = plt.subplots(4, sharex=True, figsize=(3,8))
-    ax[3].set_xlabel('MJD')
+
+    plt.close('all')
+    fig, ax = plt.subplots(4, 3, sharex=True, figsize=(11,9))
+    ax[3, 0].set_xlabel('MJD')
+    ax[3, 1].set_xlabel('MJD')
+    ax[0, 0].set_title(label1)
+    ax[0, 1].set_title(label2)
     for (i, f) in enumerate(filters):
-        ax[i].yaxis.set_major_locator(MultipleLocator(0.02))
-        ax[i].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        ax[i].yaxis.set_minor_locator(MultipleLocator(0.01))
-        ax[i].xaxis.set_minor_locator(MultipleLocator(5))
-        ax[i].errorbar(MJD[f], MAG[f], yerr=ERR[f], fmt='k.', markersize=8, elinewidth=1.0, capsize=0)
-        ax[i].set_ylabel('{} [mag]'.format(f))
-        ax[i].set_ylim(ax[i].get_ylim()[::-1])
-    fig.savefig(os.path.join(dir_out, 'filters.eps'), bbox_inches='tight', pad_inches=0.05)
+        ax[i, 0].yaxis.set_major_locator(MultipleLocator(0.02))
+        ax[i, 0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[i, 0].yaxis.set_minor_locator(MultipleLocator(0.01))
+        ax[i, 0].xaxis.set_minor_locator(MultipleLocator(5))
+        ax[i, 0].errorbar(MJD[f], MAG[f], yerr=ERR[f], fmt='k.', markersize=8, elinewidth=1.0, capsize=0)
+        ax[i, 0].set_ylabel('{} [mag]'.format(f))
+        ax[i, 0].set_ylim(ax[i, 0].get_ylim()[::-1])
+
+        ax[i, 1].yaxis.set_major_locator(MultipleLocator(0.02))
+        ax[i, 1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[i, 1].yaxis.set_minor_locator(MultipleLocator(0.01))
+        ax[i, 1].xaxis.set_minor_locator(MultipleLocator(5))
+        ax[i, 1].errorbar(MJDc[f], MAGc[f], yerr=ERRc[f], fmt='g.', markersize=8, elinewidth=1.0, capsize=0)
+        ax[i, 1].set_ylabel('{} [mag]'.format(f))
+        ax[i, 1].set_ylim(ax[i, 1].get_ylim()[::-1])
+
+        ax[i, 2].yaxis.set_major_locator(MultipleLocator(0.02))
+        ax[i, 2].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[i, 2].yaxis.set_minor_locator(MultipleLocator(0.01))
+        ax[i, 2].xaxis.set_minor_locator(MultipleLocator(5))
+        ax[i, 2].errorbar(MJD[f], MAG[f], yerr=ERR[f], fmt='k.', markersize=8, elinewidth=1.0, capsize=0, label=label1)
+        ax[i, 2].set_ylabel('{} [mag]'.format(f))
+        ax[i, 2].set_ylim(ax[i, 2].get_ylim()[::-1])
+        ax[i, 2].errorbar(MJDc[f], MAGc[f]+np.average(MAG[f])-np.average(MAGc[f]), yerr=ERRc[f], fmt='g.', markersize=8, elinewidth=1.0, capsize=0, label=label2)
+
+    # fig.savefig(os.path.join(dir_out, 'filters.eps'), bbox_inches='tight', pad_inches=0.05)
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
 
 
-def main():
-    dir_base = '/home/gamma/garrofa/xparedes/Dropbox/photometry_tjo/mwc656'
-    dir_out = os.path.join(dir_base, 'colors')
-    make_dir(dir_out)
-    MJD, MAG, ERR = read_data(dir_base)
-    f = [('B', 'V'), ('B', 'R'), ('B', 'I'), ('V', 'R'), ('V', 'I'), ('R', 'I')]
+def plot_colors(f, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf):
 
-    plot_filters(MJD, MAG, ERR, dir_out)
-
-    fig, ax = plt.subplots(3, 2, sharex=True)
+    fig, ax = plt.subplots(6, 3, sharex=True, figsize=(12,15))
     fig.subplots_adjust(wspace=0.3)
+
+    ax[0, -1].set_xlabel('MJD')
+    ax[0, -2].set_xlabel('MJD')
+    ax[0, -3].set_xlabel('MJD')
+    for i in range(6):
+        q = 0
+        ax[i, q].yaxis.set_major_locator(MultipleLocator(0.01))
+        ax[i, q].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[i, q].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[i, q].xaxis.set_minor_locator(MultipleLocator(5))
+        col = make_color_dict(f[i][0], f[i][1], MJD, MAG, ERR)
+        col_name = '{}-{}'.format(f[i][0], f[i][1])
+        ax[i, q].errorbar(col['MJD'], col['COL'], yerr=col['COLe'], xerr=col['MJDe'], fmt='.', color='black', markersize=8, elinewidth=1.0, capsize=0)
+        ax[i, q].set_ylabel('{} [mag]'.format(col_name))
+
+        q = 1
+        ax[i, q].yaxis.set_major_locator(MultipleLocator(0.01))
+        ax[i, q].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[i, q].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[i, q].xaxis.set_minor_locator(MultipleLocator(5))
+        colc = make_color_dict(f[i][0], f[i][1], MJDc, MAGc, ERRc)
+        col_name = '{}-{}'.format(f[i][0], f[i][1])
+        ax[i, q].errorbar(colc['MJD'], colc['COL'], yerr=colc['COLe'], xerr=colc['MJDe'], fmt='.', color='green', markersize=8, elinewidth=1.0, capsize=0)
+        ax[i, q].set_ylabel('{} [mag]'.format(col_name))
+
+        q = 2
+        ax[i, q].yaxis.set_major_locator(MultipleLocator(0.01))
+        ax[i, q].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[i, q].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[i, q].xaxis.set_minor_locator(MultipleLocator(5))
+        ax[i, q].errorbar(col['MJD'], col['COL'], yerr=col['COLe'], xerr=col['MJDe'], fmt='.', color='black', markersize=8, elinewidth=1.0, capsize=0)
+        ax[i, q].errorbar(colc['MJD'], colc['COL']-np.average(colc['COL'])+np.average(col['COL']), yerr=colc['COLe'], xerr=colc['MJDe'], fmt='.', color='green', markersize=8, elinewidth=1.0, capsize=0)
+        ax[i, q].set_ylabel('{} [mag]'.format(col_name))
+
+    # fig.savefig(os.path.join(dir_out, 'colors.eps'), bbox_inches='tight', pad_inches=0.05)
+    # plt.suptitle(title)
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
+
+def plot_colors_old(f, MJD, MAG, ERR, title, dir_out, pdf):
+    if title == 'Comparison star':
+        color = 'green'
+    else:
+        color = 'black'
+    plt.close('all')
+    fig, ax = plt.subplots(3, 2, sharex=True, figsize=(8,8))
+    fig.subplots_adjust(wspace=0.3)
+
     ax[2, 0].set_xlabel('MJD')
     ax[2, 1].set_xlabel('MJD')
     for k in range(len(f)):
@@ -107,11 +175,76 @@ def main():
 
         col = make_color_dict(f[k][0], f[k][1], MJD, MAG, ERR)
         col_name = '{}-{}'.format(f[k][0], f[k][1])
-        plot_single_color(col, '{} [mag]'.format(col_name), dir_out, '{}.eps'.format(col_name))
+        # plot_single_color(col, '{} [mag]'.format(col_name), dir_out, '{}.eps'.format(col_name))
 
-        ax[i, j].errorbar(col['MJD'], col['COL'], yerr=col['COLe'], xerr=col['MJDe'], fmt='k.', markersize=8, elinewidth=1.0, capsize=0)
+        ax[i, j].errorbar(col['MJD'], col['COL'], yerr=col['COLe'], xerr=col['MJDe'], fmt='.', color=color, markersize=8, elinewidth=1.0, capsize=0)
         ax[i, j].set_ylabel('{} [mag]'.format(col_name))
-    fig.savefig(os.path.join(dir_out, 'colors.eps'), bbox_inches='tight', pad_inches=0.05)
+
+    # fig.savefig(os.path.join(dir_out, 'colors.eps'), bbox_inches='tight', pad_inches=0.05)
+    # plt.suptitle(title)
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
+
+
+def plot_colors_together(f, MJD, MAG, ERR, label1, MJDc, MAGc, ERRc, label2, dir_out, pdf):
+    plt.close('all')
+    fig, ax = plt.subplots(3, 2, sharex=True)
+    fig.subplots_adjust(wspace=0.3)
+
+    ax[2, 0].set_xlabel('MJD')
+    ax[2, 1].set_xlabel('MJD')
+    for k in range(len(f)):
+        if k < 3:
+            i = k
+            j = 0
+        else:
+            i = k-3
+            j = 1
+        ax[i, j].yaxis.set_major_locator(MultipleLocator(0.01))
+        ax[i, j].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[i, j].yaxis.set_minor_locator(MultipleLocator(0.005))
+        ax[i, j].xaxis.set_minor_locator(MultipleLocator(5))
+
+        col = make_color_dict(f[k][0], f[k][1], MJD, MAG, ERR)
+        col_name = '{}-{}'.format(f[k][0], f[k][1])
+        # plot_single_color(col, '{} [mag]'.format(col_name), dir_out, '{}.eps'.format(col_name))
+
+        ax[i, j].errorbar(col['MJD'], col['COL'], yerr=col['COLe'], xerr=col['MJDe'], fmt='b.', markersize=8, elinewidth=1.0, capsize=0, label=label1)
+        ax[i, j].set_ylabel('{} [mag]'.format(col_name))
+
+    for k in range(len(f)):
+        if k < 3:
+            i = k
+            j = 0
+        else:
+            i = k-3
+            j = 1
+        col = make_color_dict(f[k][0], f[k][1], MJDc, MAGc, ERRc)
+        ax[i, j].errorbar(col['MJD'], col['COL'], yerr=col['COLe'], xerr=col['MJDe'], fmt='g.', markersize=8, elinewidth=1.0, capsize=0, label=label1)
+        ax[i, j].legend(loc='upper right', fancybox=True, framealpha=0.5, numpoints=1)
+
+    # fig.savefig(os.path.join(dir_out, 'colors.eps'), bbox_inches='tight', pad_inches=0.05)
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close('all')
+
+
+def main():
+    dir_base = '/home/gamma/garrofa/xparedes/Dropbox/photometry_tjo/mwc656'
+    dir_out = os.path.join(dir_base, 'colors')
+    make_dir(dir_out)
+    MJD, MAG, ERR = read_data(dir_base, 'target')
+    MJDc, MAGc, ERRc = read_data(dir_base, 'compa1')
+    f = [('B', 'V'), ('B', 'R'), ('B', 'I'), ('V', 'R'), ('V', 'I'), ('R', 'I')]
+
+    from matplotlib.backends.backend_pdf import PdfPages
+    with PdfPages(os.path.join(dir_out, 'colors.pdf')) as pdf:
+        plot_filters(MJD, MAG, ERR, 'MWC 656', MJDc, MAGc, ERRc, 'Comparison star', dir_out, pdf)
+        plot_colors(f, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf)
+        # plot_colors(f, MJDc, MAGc, ERRc, 'Comparison star', dir_out, pdf)
+        # plot_colors_together(f, MJD, MAG, ERR, 'MWC 656', MJDc, MAGc, ERRc, 'Comparison star', dir_out, pdf)
+
 
 
 if __name__ == '__main__':

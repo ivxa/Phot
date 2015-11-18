@@ -5,10 +5,8 @@
 import os
 import shutil
 import numpy as np
-# import crop
 import astrometry
 import nightly_std_test
-import source_check
 import linearity_map
 import shutter_map
 import bias_darks_flats
@@ -36,18 +34,12 @@ def check_data(f, n):
         raise RuntimeError("Images not revised in {}".format(f))
     elif 'org_completed' not in t:
         raise RuntimeError("Organization not completed in {}".format(f))
-    elif 'flats' not in t and param['disable_standard_cal'] == 0:
-        raise RuntimeError("Flat images not found in {}".format(f))
+    # elif 'flats' not in t and param['disable_standard_cal'] == 0:
+    #     raise RuntimeError("Flat images not found in {}".format(f))
     elif 'bias' not in t and param['disable_standard_cal'] == 0:
         raise RuntimeError("Bias images not found in {}".format(f))
     elif 'darks' not in t and param['disable_standard_cal'] == 0:
         raise RuntimeError("Darks images not found in {}".format(f))
-    # elif 'shutter_map_link' not in t and param['disable_calibration_shutter'] == 0:
-        # raise RuntimeError("Shutter map not found in {}".format(f))
-    # elif 'linearity_map_link' not in t and param['disable_calibration_lin'] == 0:
-        # raise RuntimeError("Linearity map not found in {}".format(f))
-    # elif not os.path.exists(f+n+'/raw_no_cal/darks_no_cal') and param['disable_standard_cal'] == 0:
-    #     raise RuntimeError("Dark images not found in {}".format(f+n+'/raw_no_cal/'))
 
 
 def copy_files(i0, o):
@@ -69,13 +61,13 @@ def copy_files(i0, o):
     os.makedirs(i2+'/cal/')
     os.makedirs(i2+'/tmp/')
     if param['disable_standard_cal'] == 0:
-        dirs_i = ['flats', 'bias', 'darks',  param['field_name']]
+        dirs_i = [param['flats_dir'], i0+'bias', i0+'darks', i0+param['field_name']]
         dirs_o = ['flats', 'bias', 'darks', 'science']
     else:
-        dirs_i = [param['field_name']]
+        dirs_i = [i0+param['field_name']]
         dirs_o = ['science']
     for i in range(len(dirs_i)):
-        shutil.copytree(i0+dirs_i[i], i2+'/tmp/'+dirs_o[i])
+        shutil.copytree(dirs_i[i], i2+'/tmp/'+dirs_o[i])
 
     if not os.path.exists(o):
         os.makedirs(o)
@@ -111,11 +103,13 @@ def move_files(i, o):
             if os.listdir(i+'bias/'):
                 shutil.copy2(i+'bias/master_bias.fits', o)
     if param['disable_standard_cal'] == 0:
-        if os.listdir(i+'darks/'):
-            shutil.copy2(i+'darks/master_dark.fits', o)
+        if param['disable_darks'] == 0:
+            if os.listdir(i+'darks/'):
+                shutil.copy2(i+'darks/master_dark.fits', o)
     if param['disable_standard_cal'] == 0:
-        if os.listdir(i+'flats/'):
-            shutil.copy2(i+'flats/master_flat.fits', o)
+        if param['disable_flats'] == 0:
+            if os.listdir(i+'flats/'):
+                shutil.copy2(i+'flats/master_flat.fits', o)
     if os.listdir(i+'science/'):
         [shutil.copy2(i+'science/'+f, o+'/cal/') for f in os.listdir(i+'science') if f[-5:] == '.fits']
         shutil.rmtree(i)
@@ -147,24 +141,10 @@ def calibrate_data():
             check_data(f, field_name)
             print('OK\nMaking the output folder...'),
             copy_files(f, output_path)
-            # print('OK\nCropping the images...'),
-            # crop.crop_data(f, f+'phot/'+field_name)
             print('OK\nSetting the WCS...'),
             astrometry.set_wcs(f+'phot/'+field_name+'/tmp/science/', f+'phot/'+field_name+'/tmp/science/wcs/')
             nightly_std_test.perform_test(f+'phot/'+field_name+'/tmp/science/',
                                           f+'phot/'+field_name+'/std_{}_{}_01_wcs.eps'.format(field_name, f[-9:-1]))
-            # print('OK\nSaturation and centering control...'),
-            # source_check.perform_control(f+'phot/'+field_name+'/tmp/science/')
-            # if param['disable_calibration_lin'] == 0:
-            #     print('OK\nApplying non-linear correction...'),
-            #     linearity_map.apply_correction(f+'phot/'+field_name+'/tmp/')
-            #     nightly_std_test.perform_test(f+'phot/'+field_name+'/tmp/science/',
-            #                                   f+'phot/'+field_name+'/std_{}_{}_02_wcs-lin.eps'.format(field_name, f[-9:-1]))
-            # if param['disable_calibration_shutter'] == 0:
-            #     print('OK\nApplying shutter map correction...'),
-            #     shutter_map.apply_correction(f+'phot/'+field_name+'/tmp/')
-            #     nightly_std_test.perform_test(f+'phot/'+field_name+'/tmp/science/',
-            #                                   f+'phot/'+field_name+'/std_{}_{}_03_wcs-lin-shu.eps'.format(field_name, f[-9:-1]))
             if param['disable_standard_cal'] == 0:
                 print('OK\nCalibrating the CCD (bias, darks, flats)...'),
                 bias_darks_flats.calibrate_data(f+'phot/'+field_name+'/tmp/')
