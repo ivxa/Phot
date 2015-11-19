@@ -88,7 +88,8 @@ def analyze_data():
     multi_night_std_test.perform_test(cat_mag, output_path+'std_multi_night_plots/std_{}_multi_night_01_qc.eps'.format(field_name))
     print('\nOK\nComputing the differential photometry...\n')
     cat_mag, ind, ind_ref, ind_comp, ind_comp1, ind_comp2 = differential_photometry.compute_differential_photometry(cat_ra, cat_dec, cat_mag, cat_mjd, output_path+'multi_night_LC/')
-    multi_night_std_test.perform_test(cat_mag[0], output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff.eps'.format(str('0'), field_name))
+    for i in range(len(ind_ref)):
+        multi_night_std_test.perform_test(cat_mag[::-1][i], output_path+'std_multi_night_plots/std_{}_multi_night_02_qc-diff.eps'.format(str(i), field_name))
     for (i, cat_mag_i) in enumerate(cat_mag):
         if i == 0:
             print('OK\nPerforming a quality control using photometric catalogs...'),

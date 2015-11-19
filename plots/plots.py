@@ -665,26 +665,6 @@ def plot_phase_cycles(x_cyc, y_cyc, yerr_cyc, x_cyc1, y_cyc1, yerr_cyc1, o, pdf,
 
 
 def make_plots():
-    fig_width_pt = 1*512.1496              # Get this from LaTeX using \showthe\columnwidth
-    inches_per_pt = 1.0/72.27              # Convert pt to inch
-    golden_mean = (np.sqrt(5)-1.0)/2.0     # Aesthetic ratio
-    fig_width = fig_width_pt*inches_per_pt # width in inches
-    fig_height = fig_width*golden_mean     # height in inches
-    fig_size =  [fig_width,fig_height]
-    params = {'backend': 'pdf',
-              'font.family':'serif',
-              'axes.labelsize': 12,
-              'font.size': 8,
-              'legend.fontsize': 10,
-              'xtick.labelsize': 12,
-              'ytick.labelsize': 12,
-              'text.usetex': True,
-              'text.latex.preamble':[r'\usepackage{txfonts}'],
-              'ps.usedistiller': 'xpdf',
-              'figure.figsize': fig_size}
-    plt.rcdefaults()
-    plt.rcParams.update(params)
-
     output_path = param['output_path']
     field_name = param['field_name']
     title_name = param['title_name']
@@ -701,6 +681,32 @@ def make_plots():
                 make_plots_lsi61303(pdf)
             except:
                 pass
+        elif param['field_name'] == 'mwc656':
+            try:
+                from plots_mwc656 import make_plots_mwc656
+                make_plots_mwc656(pdf)
+            except:
+                pass
+
+        fig_width_pt = 1*512.1496              # Get this from LaTeX using \showthe\columnwidth
+        inches_per_pt = 1.0/72.27              # Convert pt to inch
+        golden_mean = (np.sqrt(5)-1.0)/2.0     # Aesthetic ratio
+        fig_width = fig_width_pt*inches_per_pt # width in inches
+        fig_height = fig_width*golden_mean     # height in inches
+        fig_size =  [fig_width,fig_height]
+        params = {'backend': 'pdf',
+                  'font.family':'serif',
+                  'axes.labelsize': 12,
+                  'font.size': 8,
+                  'legend.fontsize': 10,
+                  'xtick.labelsize': 12,
+                  'ytick.labelsize': 12,
+                  'text.usetex': True,
+                  'text.latex.preamble':[r'\usepackage{txfonts}'],
+                  'ps.usedistiller': 'xpdf',
+                  'figure.figsize': fig_size}
+        plt.rcdefaults()
+        plt.rcParams.update(params)
 
         # WITH ERROR BARS
         # MJD (averaged)
@@ -727,16 +733,18 @@ def make_plots():
                    + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']), pdf)
         np.savetxt(param['output_path']+'data/'+'PHA_MAG_ERR-{}-nightly_average.dat'.format(param['field_name']),
                    np.transpose(compute_orbital_phase_mid(mjd, nightly_avg_mag, nightly_std_mag)), delimiter=' ')
-        # Cycle coloured LCs (not averaged)
-        if param['disable_plots_cycles'] == 0:
-            mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd_list, mag_list, std_list)
-            mjd_cyc1, mag_cyc1, merr_cyc1 = make_cycles(mjd_list1, mag_list1, std_list1)
-            # MJD (not averaged)
-            plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
-                            + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
-            # PHASE (not averaged)
-            plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
-                              + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
+
+        if param['field_name'] == 'psr':
+            # Cycle coloured LCs (not averaged)
+            if param['disable_plots_cycles'] == 0:
+                mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd_list, mag_list, std_list)
+                mjd_cyc1, mag_cyc1, merr_cyc1 = make_cycles(mjd_list1, mag_list1, std_list1)
+                # MJD (not averaged)
+                plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                                + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
+                # PHASE (not averaged)
+                plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                                  + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
 
         # WITHOUT ERROR BARS
         # MJD (averaged)
@@ -755,25 +763,29 @@ def make_plots():
             # PHASE (averaged)
             plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
                               + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
-        # MJD (not averaged)
-        plot_mjd(mjd_list, mag_list, std_list*0., mjd_list1, mag_list1, std_list1*0., param['output_path']
-                 + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']), pdf)
-        # PHASE (not averaged)
-        plot_phase(compute_orbital_phase(mjd_list, mag_list, std_list), compute_orbital_phase(mjd_list1, mag_list1, std_list1), param['output_path']
-                   + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']), pdf, False)
-        # Cycle coloured LCs (not averaged)
-        if param['disable_plots_cycles'] == 0:
-            mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd_list, mag_list, std_list)
-            mjd_cyc1, mag_cyc1, merr_cyc1 = make_cycles(mjd_list1, mag_list1, std_list1)
+
+        if param['field_name'] == 'psr':
             # MJD (not averaged)
-            plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
-                            + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
+            plot_mjd(mjd_list, mag_list, std_list*0., mjd_list1, mag_list1, std_list1*0., param['output_path']
+                     + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']), pdf)
             # PHASE (not averaged)
-            plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
-                              + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
+            plot_phase(compute_orbital_phase(mjd_list, mag_list, std_list), compute_orbital_phase(mjd_list1, mag_list1, std_list1), param['output_path']
+                       + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']), pdf, False)
+
+            # Cycle coloured LCs (not averaged)
+            if param['disable_plots_cycles'] == 0:
+                mjd_cyc, mag_cyc, merr_cyc = make_cycles(mjd_list, mag_list, std_list)
+                mjd_cyc1, mag_cyc1, merr_cyc1 = make_cycles(mjd_list1, mag_list1, std_list1)
+                # MJD (not averaged)
+                plot_mjd_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                                + 'multi_night_LC/MJD-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
+                # PHASE (not averaged)
+                plot_phase_cycles(mjd_cyc, mag_cyc, merr_cyc, mjd_cyc1, mag_cyc1, merr_cyc1, param['output_path']
+                                  + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf, False)
 
         mega_plot(output_path, 'average', field_name, title_name, nstars, pdf)
-        mega_plot(output_path, 'single', field_name, title_name, nstars, pdf)
+        if param['field_name'] == 'psr':
+            mega_plot(output_path, 'single', field_name, title_name, nstars, pdf)
         if param['disable_plots_nightly'] == 0:
             nightly_plots(output_path, 'single', field_name, title_name, nstars, pdf)
 
