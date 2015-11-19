@@ -31,7 +31,7 @@ def make_image_list(i, fl):
 
 def call_sextractor(i, im, sl, first_time):
     cat_name = i+'/cat/'+im[:-6]+'.cat'
-    if first_time:
+    if first_time and param['check_images']==1:
         check_images_path = param['output_path']+'check_images/'+str(im)
         cmd = 'sex {} -c se.sex -CATALOG_NAME {} -SATUR_LEVEL {} -CHECKIMAGE_NAME {}'.format(i+'/cal/'+im, cat_name, sl, check_images_path)
     else:

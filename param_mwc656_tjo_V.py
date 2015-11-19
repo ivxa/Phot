@@ -20,6 +20,7 @@ param = {
     'disable_plots_error_bars': 0,
     'disable_plots_nightly': 0,
     'check_centering': 0,
+    'check_images': 0,    
     'tol_center': 100,
     'field_name': 'V',
     'title_name': 'MWC 656',
