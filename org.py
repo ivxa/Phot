@@ -9,10 +9,10 @@ import os
 import subprocess
 import pyfits
 
-
-def listdirs(p):
-    return [os.path.join(p, d) for d in os.listdir(p) \
-            if os.path.isdir(os.path.join(p, d)) and d[0] == '2']
+#
+# def listdirs(p):
+#     return [os.path.join(p, d) for d in os.listdir(p) \
+#             if os.path.isdir(os.path.join(p, d)) and d[0] == '2']
 
 
 def file_type(d, fl):
@@ -72,10 +72,10 @@ def remove_empty_directories(dir_list):
 def main():
     data_path = '/home/gamma/garrofa/xparedes/data/tjo/'
     # data_path = '/home/gamma/garrofa/xparedes/data/tjo_test/'
-    dir_list = listdirs(data_path)
+    dir_list = np.sort(listdirs(data_path))
     for d in dir_list:
         print d
-    stop
+
     for d in dir_list:
         file_list = os.listdir(d)
         if 'org_completed' not in file_list:

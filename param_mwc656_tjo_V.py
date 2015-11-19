@@ -3,7 +3,7 @@
 
 
 param = {
-    'rerun': 0,
+    'rerun': 1,
     'disable_calibration': 0,
     'disable_standard_cal': 1,
     'disable_flats': 0,
