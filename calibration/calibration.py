@@ -7,7 +7,6 @@ import shutil
 import numpy as np
 import astrometry
 import nightly_std_test
-import linearity_map
 import shutter_map
 import bias_darks_flats
 import sys
