@@ -71,6 +71,15 @@ def plot_single_color(col, xlab, dir_out, fname):
 
 def plot_filters(MJD, MAG, ERR, label1, MJDc, MAGc, ERRc, label2, dir_out, pdf):
     filters = ['B', 'V', 'R', 'I']
+    filter_colors = ['blue', 'green', 'red', 'orange']
+
+    dy = 0.
+    for f in filters:
+        mmax = max(MAG[f])
+        mmin = min(MAG[f])
+        dy_aux = mmax-mmin+2*0.004
+        if dy<dy_aux:
+            dy=dy_aux
 
     plt.close('all')
     fig, ax = plt.subplots(4, 3, sharex=True, figsize=(11,9))
@@ -112,6 +121,45 @@ def plot_filters(MJD, MAG, ERR, label1, MJDc, MAGc, ERRc, label2, dir_out, pdf):
     plt.tight_layout()
     pdf.savefig()
     plt.close('all')
+
+
+    fig_width_pt = 1*512.1496              # Get this from LaTeX using \showthe\columnwidth
+    inches_per_pt = 1.0/72.27              # Convert pt to inch
+    golden_mean = (np.sqrt(5)-1.0)/2.0     # Aesthetic ratio
+    fig_width = fig_width_pt*inches_per_pt # width in inches
+    fig_height = fig_width*golden_mean     # height in inches
+    fig_size =  [fig_width,fig_height*1.2]
+    params = {'backend': 'ps',
+              'font.family':'serif',
+              'axes.labelsize': 18,
+              'font.size': 18,
+              'legend.fontsize': 18,
+              'xtick.labelsize': 18,
+              'ytick.labelsize': 18,
+              'text.usetex': True,
+              'text.latex.preamble':[r'\usepackage{txfonts}'],
+              'ps.usedistiller': 'xpdf',
+              'figure.figsize': fig_size}
+    fs = 18
+    for i, f in enumerate(filters):
+        plt.rcdefaults()
+        plt.rcParams.update(params)
+        plt.close('all')
+        fig, ax = plt.subplots()
+        ax.set_xlabel('MJD')
+        ax.yaxis.set_minor_locator(MultipleLocator(0.01))
+        ax.xaxis.set_minor_locator(MultipleLocator(5))
+        ax.errorbar(MJD[f], MAG[f], yerr=ERR[f], color=filter_colors[i], fmt='.', markersize=8, elinewidth=1.0, capsize=0, label=label1)
+        ax.set_ylabel(r'$I_{\rm C}$ [mag]')
+        ymin = np.average(MAG[f])-dy/2.
+        ymax = np.average(MAG[f])+dy/2.
+        ax.set_ylim((ymin, ymax))
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax.errorbar(MJDc[f], MAGc[f]+np.average(MAG[f])-np.average(MAGc[f]), yerr=ERRc[f], color='black', fmt='.', markersize=8, elinewidth=1.0, capsize=0, label=label2)
+        plt.tight_layout()
+        # fig.savefig(os.path.join(dir_out, 'filter_{}.eps'.format(filter_colors[i])), bbox_inches='tight', pad_inches=0.05)
+        fig.savefig(os.path.join(dir_out, 'filter_{}.jpg'.format(f)), bbox_inches='tight', pad_inches=0.05)
+        plt.close('all')
 
 
 def plot_colors(f, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf):
@@ -157,6 +205,8 @@ def plot_colors(f, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf):
     ax[-1, 2].set_xticklabels(ax[-1, 2].get_xticks(), rotation=70, ha='right')
 
     # fig.savefig(os.path.join(dir_out, 'colors.eps'), bbox_inches='tight', pad_inches=0.05)
+    plt.tight_layout()
+    fig.savefig(os.path.join(dir_out, 'colors.jpg'), bbox_inches='tight', pad_inches=0.05)
     # plt.suptitle(title)
     plt.tight_layout()
     pdf.savefig()
@@ -391,7 +441,7 @@ def compute_orbital_phase(mjd, mag, merr):
 
 
 def main():
-    dir_base = '/home/gamma/garrofa/xparedes/Dropbox/photometry_tjo/mwc656'
+    dir_base = param['ref_star_file_out']
     dir_out = os.path.join(dir_base, 'colors')
     make_dir(dir_out)
     MJD, MAG, ERR = read_data(dir_base, 'target')

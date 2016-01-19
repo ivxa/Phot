@@ -9,10 +9,10 @@ import os
 import subprocess
 import pyfits
 
-#
-# def listdirs(p):
-#     return [os.path.join(p, d) for d in os.listdir(p) \
-#             if os.path.isdir(os.path.join(p, d)) and d[0] == '2']
+
+def listdirs(p):
+    return [os.path.join(p, d) for d in os.listdir(p) \
+            if os.path.isdir(os.path.join(p, d)) and d[0] == '2']
 
 
 def file_type(d, fl):
