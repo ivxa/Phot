@@ -16,7 +16,7 @@ plt.rcdefaults()
 execfile(sys.argv[1])
 
 
-def read_data(dir_base, suffix):
+def read_data(dir_base, suffix, dm):
     filters = ['B', 'V', 'R', 'I']
 
     JD = {}
@@ -34,6 +34,9 @@ def read_data(dir_base, suffix):
         MJD[f] = MJD[f][ix]
         MAG[f] = MAG[f][ix]
         ERR[f] = ERR[f][ix]
+
+    for f in filters:
+        MAG[f] -= dm
 
     for i in range(1, len(filters)):
         assert len(MJD[filters[0]]) == len(MJD[filters[i]])
@@ -440,12 +443,20 @@ def compute_orbital_phase(mjd, mag, merr):
     return np.append(phase, phase+1), np.append(mag, mag), np.append(merr, merr)
 
 
+def zero_mag(dir_base, suffix,):
+    dir_in = os.path.join(dir_base, 'V', 'data/S0_{}_MJD_MAG_ERR-{}-nightly_average.dat'.format(suffix, 'V'))
+    MJD, MAG, ERR, _nframes = np.loadtxt(dir_in, unpack=True, delimiter=' ')
+    dm = np.average(MAG)-param['zero_magnitude']
+    return dm
+
+
 def main():
     dir_base = param['ref_star_file_out']
     dir_out = os.path.join(dir_base, 'colors')
     make_dir(dir_out)
-    MJD, MAG, ERR = read_data(dir_base, 'target')
-    MJDc, MAGc, ERRc = read_data(dir_base, 'compa1')
+    dm = zero_mag(dir_base, 'target')
+    MJD, MAG, ERR = read_data(dir_base, 'target', dm)
+    MJDc, MAGc, ERRc = read_data(dir_base, 'compa1', dm)
     f = [('B', 'V'), ('B', 'R'), ('B', 'I'), ('V', 'R'), ('V', 'I'), ('R', 'I')]
 
     from matplotlib.backends.backend_pdf import PdfPages
