@@ -15,9 +15,15 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 plt.rcdefaults()
 execfile(sys.argv[1])
 
+# filters = ['B', 'V', 'R', 'I']
+# filter_colors = ['blue', 'green', 'red', 'orange']
+# filter_pairs = [('B', 'V'), ('B', 'R'), ('B', 'I'), ('V', 'R'), ('V', 'I'), ('R', 'I')]
+filters = ['V', 'R', 'I']
+filter_colors = ['green', 'red', 'orange']
+filter_pairs = [('V', 'R'), ('V', 'I'), ('R', 'I')]
 
 def read_data(dir_base, suffix, dm):
-    filters = ['B', 'V', 'R', 'I']
+    # filters = ['B', 'V', 'R', 'I']
 
     JD = {}
     MJD = {}
@@ -73,8 +79,8 @@ def plot_single_color(col, xlab, dir_out, fname):
 
 
 def plot_filters(MJD, MAG, ERR, label1, MJDc, MAGc, ERRc, label2, dir_out, pdf):
-    filters = ['B', 'V', 'R', 'I']
-    filter_colors = ['blue', 'green', 'red', 'orange']
+    # filters = ['B', 'V', 'R', 'I']
+    # filter_colors = ['blue', 'green', 'red', 'orange']
 
     dy = 0.
     for f in filters:
@@ -457,16 +463,16 @@ def main():
     dm = zero_mag(dir_base, 'target')
     MJD, MAG, ERR = read_data(dir_base, 'target', dm)
     MJDc, MAGc, ERRc = read_data(dir_base, 'compa1', dm)
-    f = [('B', 'V'), ('B', 'R'), ('B', 'I'), ('V', 'R'), ('V', 'I'), ('R', 'I')]
+    # filter_pairs = [('B', 'V'), ('B', 'R'), ('B', 'I'), ('V', 'R'), ('V', 'I'), ('R', 'I')]
 
     from matplotlib.backends.backend_pdf import PdfPages
     with PdfPages(os.path.join(dir_out, 'colors.pdf')) as pdf:
         plot_filters(MJD, MAG, ERR, 'MWC 656', MJDc, MAGc, ERRc, 'Comparison star', dir_out, pdf)
-        plot_colors(f, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf)
-        plot_mjd_cycles(f, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf)
-        plot_phase_cycles(f, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf)
-        # plot_colors(f, MJDc, MAGc, ERRc, 'Comparison star', dir_out, pdf)
-        # plot_colors_together(f, MJD, MAG, ERR, 'MWC 656', MJDc, MAGc, ERRc, 'Comparison star', dir_out, pdf)
+        plot_colors(filter_pairs, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf)
+        plot_mjd_cycles(filter_pairs, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf)
+        plot_phase_cycles(filter_pairs, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf)
+        # plot_colors(filter_pairs, MJDc, MAGc, ERRc, 'Comparison star', dir_out, pdf)
+        # plot_colors_together(filter_pairs, MJD, MAG, ERR, 'MWC 656', MJDc, MAGc, ERRc, 'Comparison star', dir_out, pdf)
 
 
 
