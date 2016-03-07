@@ -21,7 +21,8 @@ execfile(sys.argv[1])
 filters = ['V', 'R', 'I']
 filter_colors = ['green', 'red', 'orange']
 filter_pairs = [('V', 'R'), ('V', 'I'), ('R', 'I')]
-Npairs = 3 # 6
+
+Npairs = len(filter_pairs)
 
 def read_data(dir_base, suffix, dm):
     # filters = ['B', 'V', 'R', 'I']
