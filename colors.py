@@ -21,6 +21,7 @@ execfile(sys.argv[1])
 filters = ['V', 'R', 'I']
 filter_colors = ['green', 'red', 'orange']
 filter_pairs = [('V', 'R'), ('V', 'I'), ('R', 'I')]
+Npairs = 3 # 6
 
 def read_data(dir_base, suffix, dm):
     # filters = ['B', 'V', 'R', 'I']
@@ -35,8 +36,15 @@ def read_data(dir_base, suffix, dm):
         JD[f] = np.floor(MJD[f]+2400000.5) # JD starts at 12:00, use the same nights
 
     for f in filters:
-        f1, f2, f3 = [v for v in filters if v != f]
-        ix = [ix for (ix, v) in enumerate(JD[f]) if (v in JD[f1]) and (v in JD[f2]) and (v in JD[f3])]
+        if len(filters) == 4:
+            f1, f2, f3 = [v for v in filters if v != f]
+            ix = [ix for (ix, v) in enumerate(JD[f]) if (v in JD[f1]) and (v in JD[f2]) and (v in JD[f3])]
+        elif len(filters) == 3:
+            f1, f2 = [v for v in filters if v != f]
+            ix = [ix for (ix, v) in enumerate(JD[f]) if (v in JD[f1]) and (v in JD[f2])]
+        else:
+            print 'Not implemented'
+            raise 'ERROR'
         MJD[f] = MJD[f][ix]
         MAG[f] = MAG[f][ix]
         ERR[f] = ERR[f][ix]
@@ -179,7 +187,7 @@ def plot_colors(f, MJD, MAG, ERR, MJDc, MAGc, ERRc, dir_out, pdf):
     ax[0, -1].set_xlabel('MJD')
     ax[0, -2].set_xlabel('MJD')
     ax[0, -3].set_xlabel('MJD')
-    for i in range(6):
+    for i in range(Npairs):
         q = 0
         ax[i, q].yaxis.set_major_locator(MultipleLocator(0.01))
         ax[i, q].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
@@ -304,7 +312,7 @@ def make_cycles(mjd, mag, merr, testing=0):
 
 def plot_mjd_cycles(ff, MJD, MAG, ERR,  MJDc, MAGc, ERRc, dir_out, pdf, plot_errors=True):
 
-    for iii in range(6):
+    for iii in range(Npairs):
         col = make_color_dict(ff[iii][0], ff[iii][1], MJD, MAG, ERR)
         col_name = '{}-{}'.format(ff[iii][0], ff[iii][1])
         x_cyc, y_cyc, yerr_cyc = make_cycles(col['MJD'], col['COL'], col['COLe'])
@@ -379,7 +387,7 @@ def plot_mjd_cycles(ff, MJD, MAG, ERR,  MJDc, MAGc, ERRc, dir_out, pdf, plot_err
 
 def plot_phase_cycles(ff, MJD, MAG, ERR,  MJDc, MAGc, ERRc, dir_out, pdf, plot_errors=True):
 
-    for iii in range(6):
+    for iii in range(Npairs):
         col = make_color_dict(ff[iii][0], ff[iii][1], MJD, MAG, ERR)
         col_name = '{}-{}'.format(ff[iii][0], ff[iii][1])
         x_cyc, y_cyc, yerr_cyc = make_cycles(col['MJD'], col['COL'], col['COLe'])
