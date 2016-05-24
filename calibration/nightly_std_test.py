@@ -11,6 +11,7 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import sys
+import pyfits
 param = {}
 execfile(sys.argv[1])
 
@@ -32,8 +33,16 @@ def remove_cat_folder(i):
 
 
 def call_sextractor(i, im, sl):
+    header = pyfits.getheader(i+im)
+    if int(header['MJD']) < 57416:
+        GAIN = 12.5
+        PIXEL_SCALE = 3.9
+    else:
+        GAIN = 0.34
+        PIXEL_SCALE = 2.37
+
     cat_name = i+'cat/'+im[:-6]+'.cat'
-    cmd = 'sex {} -c se.sex -CATALOG_NAME {} -SATUR_LEVEL {}'.format(i+im, cat_name, sl)
+    cmd = 'sex {} -c se.sex -CATALOG_NAME {} -SATUR_LEVEL {} -GAIN {} -PIXEL_SCALE {}'.format(i+im, cat_name, sl, GAIN, PIXEL_SCALE)
     subprocess.call(cmd, shell=True)
     return cat_name
 

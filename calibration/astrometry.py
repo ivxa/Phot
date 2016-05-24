@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import pyfits
 param = {}
 execfile(sys.argv[1])
 
@@ -23,7 +24,7 @@ def call_astrometry_dot_net(i, o, ra, dec, radius, scale_low, scale_high):
         -J: If *.solved exist don't fit again
         -m: where to put temp files, default /tmp
         -O: Overwrite the output files
-        --new-fits: Output file name"""
+        --new-fits: Output file name"""       
     cmd = ('solve-field --ra {} --dec {} --radius {} '
            '--scale-units arcsecperpix --scale-low {} --scale-high {} '
            '-D {} -p -U none -M none -R none -B none -J -m {} -O --new-fits %s.fits {}')\
@@ -44,6 +45,12 @@ def set_wcs(i, o):
     radius = param['radius']
     scale_low = param['scale_low']
     scale_high = param['scale_high']
+
+    header = pyfits.getheader([i+f for f in os.listdir(i) if f[-5:] == '.fits'][0])
+    if int(header['MJD']) < 57416:
+        radius = param['radius_old_camera']
+        scale_low = param['scale_low_old_camera']
+        scale_high = param['scale_high_old_camera']
 
     make_tmp_folder(o)
     call_astrometry_dot_net(i, o, ra, dec, radius, scale_low, scale_high)

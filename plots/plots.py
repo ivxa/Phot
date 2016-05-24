@@ -351,7 +351,7 @@ def mega_plot(o, suff, fn, tn, nstars, pdf):
     # auto_crop_img(fname)
 
 
-def plot_mjd(x, y, yerr, x1, y1, yerr1, o, pdf):
+def plot_mjd(x, y, yerr, x1, y1, yerr1, o, pdf, plot_errors=True):
     def tick_function(tick_list):
         return [Time(t, format='mjd', scale='utc' ).datetime.date() for t in tick_list]
 
@@ -374,7 +374,6 @@ def plot_mjd(x, y, yerr, x1, y1, yerr1, o, pdf):
     axtop.set_xbound(ax[0].get_xbound())
     axtop.set_xticklabels(tick_function(ax[0].get_xticks()), rotation=70, ha='left')
 
-
     ax[1].errorbar(x1, y1, yerr=yerr1, fmt='k.', markersize=8, alpha=0.7, elinewidth=1.0, capsize=0, label='Comp. star')
     ax[1].set_xlabel(r'MJD')
     ax[1].set_ylabel(r'$m$ [mag]')
@@ -389,12 +388,34 @@ def plot_mjd(x, y, yerr, x1, y1, yerr1, o, pdf):
     axtop.set_xbound(ax[1].get_xbound())
     axtop.set_xticklabels(tick_function(ax[1].get_xticks()), rotation=70, ha='left')
 
-
     plt.tight_layout()
     pdf.savefig()
     plt.close('all')
-    # f.savefig(o, bbox_inches='tight', pad_inches=0.05)
-    # auto_crop_img(o)
+
+    if plot_errors:
+        plt.close('all')
+        f, ax = plt.subplots()
+        ax.errorbar(x, y, yerr=yerr, fmt='k.', markersize=8, alpha=0.7, elinewidth=1.0, capsize=0)
+        ax.set_xlabel(r'MJD')
+        ax.set_ylabel(r'$m$ [mag]')
+        ax.set_xlim((min(x)-6, max(x)+6))
+        ax.set_ylim((ymin*(1-0.001), ymax*(1+0.001)))
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.grid()
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        axtop = ax.twiny()
+        axtop.set_xticks(ax.get_xticks())
+        axtop.set_xbound(ax.get_xbound())
+        axtop.set_xticklabels(tick_function(ax.get_xticks()), rotation=70, ha='left')
+        f.savefig(o[:-3]+'jpg', bbox_inches='tight', pad_inches=0.05)
+        f.savefig(o[:-3]+'ps', bbox_inches='tight', pad_inches=0.05)
+        f.savefig(o[:-3]+'eps', bbox_inches='tight', pad_inches=0.05)
+        f.savefig(o[:-3]+'pdf', bbox_inches='tight', pad_inches=0.05)
+        plt.tight_layout()
+        plt.close('all')
+        # auto_crop_img(o)
 
 
 def compute_orbital_phase(mjd, mag, merr):
@@ -450,8 +471,68 @@ def plot_phase(i, i1, o, pdf, plot_errors=True):
     plt.tight_layout()
     pdf.savefig()
     plt.close('all')
-    # f.savefig(o, bbox_inches='tight', pad_inches=0.05)
-    # auto_crop_img(o)
+
+    if plot_errors:
+        fig_width_pt = 1*512.1496              # Get this from LaTeX using \showthe\columnwidth
+        inches_per_pt = 1.0/72.27              # Convert pt to inch
+        golden_mean = (np.sqrt(5)-1.0)/2.0     # Aesthetic ratio
+        fig_width = fig_width_pt*inches_per_pt # width in inches
+        fig_height = fig_width*golden_mean     # height in inches
+        fig_size =  [fig_width,fig_height*1.2]
+        params = {'backend': 'ps',
+                  'font.family':'serif',
+                  'axes.labelsize': 18,
+                  'font.size': 18,
+                  'legend.fontsize': 18,
+                  'xtick.labelsize': 18,
+                  'ytick.labelsize': 18,
+                  'text.usetex': True,
+                  'text.latex.preamble':[r'\usepackage{txfonts}'],
+                  'ps.usedistiller': 'xpdf',
+                  'figure.figsize': fig_size}
+        fs = 18
+        plt.rcdefaults()
+        plt.rcParams.update(params)
+
+        plt.close('all')
+        f, ax = plt.subplots()
+        ax.errorbar(x, y, yerr=yerr, fmt='k.', markersize=8, alpha=0.8, elinewidth=1.0, capsize=0)
+        ax.set_xlabel(r'PHASE')
+        ax.set_ylabel(r'$m$ [mag]')
+        ax.set_xlim(0, 2)
+        ax.xaxis.set_minor_locator(MultipleLocator(0.1))
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
+        ax.grid()
+        ax.set_ylim((ymin*(1-0.001), ymax*(1+0.001)))
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+        f.savefig(o[:-3]+'jpg', bbox_inches='tight', pad_inches=0.05)
+        f.savefig(o[:-3]+'eps', bbox_inches='tight', pad_inches=0.05)
+        f.savefig(o[:-3]+'ps', bbox_inches='tight', pad_inches=0.05)
+        f.savefig(o[:-3]+'pdf', bbox_inches='tight', pad_inches=0.05)
+        plt.close('all')
+
+        fig_width_pt = 1*512.1496              # Get this from LaTeX using \showthe\columnwidth
+        inches_per_pt = 1.0/72.27              # Convert pt to inch
+        golden_mean = (np.sqrt(5)-1.0)/2.0     # Aesthetic ratio
+        fig_width = fig_width_pt*inches_per_pt # width in inches
+        fig_height = fig_width*golden_mean     # height in inches
+        fig_size =  [fig_width,fig_height]
+        params = {'backend': 'pdf',
+                  'font.family':'serif',
+                  'axes.labelsize': 12,
+                  'font.size': 8,
+                  'legend.fontsize': 10,
+                  'xtick.labelsize': 12,
+                  'ytick.labelsize': 12,
+                  'text.usetex': True,
+                  'text.latex.preamble':[r'\usepackage{txfonts}'],
+                  'ps.usedistiller': 'xpdf',
+                  'figure.figsize': fig_size}
+        plt.rcdefaults()
+        plt.rcParams.update(params)
+
+        # auto_crop_img(o)
 
 
 def arrange_lists_in_cycles(x_list, phase, cycle_list):
@@ -676,17 +757,24 @@ def make_plots():
         mjd_list1, mag_list1, std_list1, mjd1, nightly_avg_mag1, nightly_std_mag1, night_list1 = load_data(output_path, '{}_compa1'.format('0'))
 
         if param['field_name'] == 'lsi61303':
-            try:
+            #try:
                 from plots_lsi61303 import make_plots_lsi61303
                 make_plots_lsi61303(pdf)
-            except:
-                pass
+                import sys
+                sys.exit(1)                
+            #except:
+            #   pass
+            #import sys
+            # sys.exit(1)                
         elif param['field_name'] == 'mwc656':
-            try:
+            #try:
                 from plots_mwc656 import make_plots_mwc656
                 make_plots_mwc656(pdf)
-            except:
-                pass
+            #except:
+            #    pass
+                import sys
+                sys.exit(1)
+
 
         fig_width_pt = 1*512.1496              # Get this from LaTeX using \showthe\columnwidth
         inches_per_pt = 1.0/72.27              # Convert pt to inch
@@ -711,7 +799,7 @@ def make_plots():
         # WITH ERROR BARS
         # MJD (averaged)
         plot_mjd(mjd, nightly_avg_mag, nightly_std_mag, mjd1, nightly_avg_mag1, nightly_std_mag1, param['output_path']
-                 + 'multi_night_LC/MJD-{}-target-nightly_average.eps'.format(param['field_name']), pdf)
+                 + 'multi_night_LC/MJD-{}-target-nightly_average.eps'.format(param['field_name']), pdf, True)
         # PHASE (averaged)
         plot_phase(compute_orbital_phase(mjd, nightly_avg_mag, nightly_std_mag), compute_orbital_phase(mjd1, nightly_avg_mag1, nightly_std_mag1), param['output_path']
                    + 'multi_night_LC/PHA-{}-target-nightly_average.eps'.format(param['field_name']), pdf)
@@ -727,7 +815,7 @@ def make_plots():
                               + 'multi_night_LC/PHA-{}-target-nightly_average_cycles.eps'.format(param['field_name']), pdf)
         # MJD (not averaged)
         plot_mjd(mjd_list, mag_list, std_list, mjd_list1, mag_list1, std_list1, param['output_path']
-                 + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']), pdf)
+                 + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']), pdf, True)
         # PHASE (not averaged)
         plot_phase(compute_orbital_phase(mjd_list, mag_list, std_list), compute_orbital_phase(mjd_list1, mag_list1, std_list1), param['output_path']
                    + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']), pdf)
@@ -749,7 +837,7 @@ def make_plots():
         # WITHOUT ERROR BARS
         # MJD (averaged)
         plot_mjd(mjd, nightly_avg_mag, nightly_std_mag*0., mjd1, nightly_avg_mag1, nightly_std_mag1*0.,param['output_path']
-                 + 'multi_night_LC/MJD-{}-target-nightly_average.eps'.format(param['field_name']), pdf)
+                 + 'multi_night_LC/MJD-{}-target-nightly_average.eps'.format(param['field_name']), pdf, False)
         # PHASE (averaged)
         plot_phase(compute_orbital_phase(mjd, nightly_avg_mag, nightly_std_mag), compute_orbital_phase(mjd1, nightly_avg_mag1, nightly_std_mag1), param['output_path']
                    + 'multi_night_LC/PHA-{}-target-nightly_average.eps'.format(param['field_name']), pdf, False)
@@ -767,7 +855,7 @@ def make_plots():
         if param['field_name'] == 'psr':
             # MJD (not averaged)
             plot_mjd(mjd_list, mag_list, std_list*0., mjd_list1, mag_list1, std_list1*0., param['output_path']
-                     + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']), pdf)
+                     + 'multi_night_LC/MJD-{}-target-all_frames.eps'.format(param['field_name']), pdf, False)
             # PHASE (not averaged)
             plot_phase(compute_orbital_phase(mjd_list, mag_list, std_list), compute_orbital_phase(mjd_list1, mag_list1, std_list1), param['output_path']
                        + 'multi_night_LC/PHA-{}-target-all_frames.eps'.format(param['field_name']), pdf, False)

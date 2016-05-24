@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import subprocess
 from astropy.io import fits
+import pyfits
 param = {}
 execfile(sys.argv[1])
 
@@ -29,8 +30,16 @@ def make_image_list(i, fl):
 
 
 def call_sextractor(i, im, sl):
+    header = pyfits.getheader(i+'/cal/'+im)
+    if int(header['MJD']) < 57416:
+        GAIN = 12.5
+        PIXEL_SCALE = 3.9
+    else:
+        GAIN = 0.34
+        PIXEL_SCALE = 2.37
+
     cat_name = i+'/cat/'+im[:-6]+'.cat'
-    cmd = 'sex {} -c {} -CATALOG_NAME {} -SATUR_LEVEL {}'.format(i+'/cal/'+im, param['sextractor_file'], cat_name, sl)
+    cmd = 'sex {} -c {} -CATALOG_NAME {} -SATUR_LEVEL {} -GAIN {} -PIXEL_SCALE {}'.format(i+'/cal/'+im, param['sextractor_file'], cat_name, sl, GAIN, PIXEL_SCALE)
     if param['disable_analysis_extraction'] == 0:
         subprocess.call(cmd, shell=True)
     return cat_name

@@ -115,7 +115,7 @@ def move_files(i, o):
         shutil.copy2(i+'bias/master_bias.fits', o)
     if os.listdir(i+'darks/') and param['disable_standard_cal'] == 0:
         shutil.copy2(i+'darks/master_dark.fits', o)
-    if os.listdir(i+'flats/') and param['disable_standard_cal'] == 0:
+    if os.listdir(i+'flats/') and (param['disable_normal_flat'] == 0 or param['disable_screen_flat'] == 0):
         shutil.copy2(i+'flats/master_flat.fits', o)
     if os.listdir(i+'science/'):
         [shutil.copy2(i+'science/'+f, o+'/cal/') for f in os.listdir(i+'science') if f[-5:] == '.fits']
