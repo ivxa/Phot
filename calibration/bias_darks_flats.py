@@ -223,7 +223,7 @@ def calibrate_science_frames(s, b, d, f):
     iraf.module.ccdproc.setParam('grow', '0.0')
     iraf.module.ccdproc(mode='h', Stdout=0)
 
-    if param['disable_normal_flat'] == 0:
+    if param['disable_normal_flat'] == 0 or param['disable_screen_flat'] == 0:
     # science / flat
         iraf.module.ccdproc.setParam('images', '@'+s+'input.dat')
         iraf.module.ccdproc.setParam('output', ' ')

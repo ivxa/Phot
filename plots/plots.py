@@ -760,8 +760,8 @@ def make_plots():
             #try:
                 from plots_lsi61303 import make_plots_lsi61303
                 make_plots_lsi61303(pdf)
-                import sys
-                sys.exit(1)                
+                #import sys
+                #sys.exit(1)                
             #except:
             #   pass
             #import sys
@@ -772,8 +772,8 @@ def make_plots():
                 make_plots_mwc656(pdf)
             #except:
             #    pass
-                import sys
-                sys.exit(1)
+                #import sys
+                #sys.exit(1)
 
 
         fig_width_pt = 1*512.1496              # Get this from LaTeX using \showthe\columnwidth

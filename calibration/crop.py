@@ -23,8 +23,11 @@ def make_file_list(i):
 def crop(i, o, n, x0, x1, y0, y1):
     data, header = fits.getdata(i+n, header=True)
 
-    if int(header['MJD']) < 57416:
-        (x0, x1, y0, y1) = param['crop_region_old_camera']
+    try:
+        if int(header['MJD']) < 57416:
+            (x0, x1, y0, y1) = param['crop_region_old_camera']
+    except:
+        pass
 
     data = data[y0:y1, x0:x1]
     fits.writeto(o+n, data, header)
