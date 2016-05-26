@@ -42,8 +42,8 @@ def check_data(f, n):
         raise RuntimeError("Bias images not found in {}".format(f))
     elif 'shutter_map_link' not in t and param['disable_calibration_shutter'] == 0:
         raise RuntimeError("Shutter map not found in {}".format(f))
-    elif 'linearity_map_link' not in t and param['disable_calibration_lin'] == 0:
-        raise RuntimeError("Linearity map not found in {}".format(f))
+    # elif 'linearity_map_link' not in t and param['disable_calibration_lin'] == 0:
+    #     raise RuntimeError("Linearity map not found in {}".format(f))
     if not os.path.exists(f+n+'/raw_no_cal/darks_no_cal') and param['disable_standard_cal'] == 0:
         raise RuntimeError("Dark images not found in {}".format(f+n+'/raw_no_cal/'))
 

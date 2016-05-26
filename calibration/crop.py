@@ -23,9 +23,10 @@ def make_file_list(i):
 def crop(i, o, n, x0, x1, y0, y1):
     data, header = fits.getdata(i+n, header=True)
 
+    (x0, x1, y0, y1) = param['crop_region_old_camera']
     try:
-        if int(header['MJD']) < 57416:
-            (x0, x1, y0, y1) = param['crop_region_old_camera']
+        if int(header['MJD']) > 57425:
+            (x0, x1, y0, y1) = param['crop_region']
     except:
         pass
 
@@ -51,7 +52,9 @@ def crop_data(fi, fo):
         crop_set(fi+'bias_no_cal/', fo+'/tmp/bias/')
         crop_set(fi+fn+'/raw_no_cal/darks_no_cal/', fo+'/tmp/darks/')
     if param['disable_calibration_lin'] == 0:
-        crop_set(fi+'linearity_map_link/', fo+'/tmp/linear/')
+        # crop_set(fi+'linearity_map_link/', fo+'/tmp/linear/')
+        crop_set('/home/gamma/garrofa/xparedes/data/tfrm_data/linearity_map/',
+            fo+'/tmp/linear/')
     if param['disable_calibration_shutter'] == 0:
         crop_set(fi+'shutter_map_link/', fo+'/tmp/shutter/')
     crop_set(fi+fn+'/raw_no_cal/', fo+'/tmp/science/')
